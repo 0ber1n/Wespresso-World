@@ -1,11 +1,12 @@
 package io.wespresso_world.wespresso_world;
 
-import io.wespresso_world.wespresso_world.models.Coffee;
-import io.wespresso_world.wespresso_world.repositories.CoffeeRepository;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.CommandLineRunner;
-import org.springframework.context.annotation.Bean;	
+import org.springframework.context.annotation.Bean;
+
+import io.wespresso_world.wespresso_world.drinks.Drinks;
+import io.wespresso_world.wespresso_world.drinks.DrinksRepository;	
 
 @SpringBootApplication
 public class WespressoWorldApplication {
@@ -15,12 +16,12 @@ public class WespressoWorldApplication {
 	}
 
 	@Bean
-	CommandLineRunner initDatabase(CoffeeRepository coffeeRepository) {
+	CommandLineRunner initDatabase(DrinksRepository DrinksRepository) {
 		return args -> {
 			// Initialize the database with some sample data
-			coffeeRepository.save(new Coffee(null, "Espresso", "Strong and bold", 2.50));
-			coffeeRepository.save(new Coffee(null, "Latte", "Smooth and creamy", 3.50));
-			coffeeRepository.save(new Coffee(null, "Cappuccino", "Rich and frothy", 3.00));
+			DrinksRepository.save(new Drinks(null, "Espresso", "Strong and bold", 2.50));
+			DrinksRepository.save(new Drinks(null, "Latte", "Smooth and creamy", 3.50));
+			DrinksRepository.save(new Drinks(null, "Cappuccino", "Rich and frothy", 3.00));
 		};
 	}
 
