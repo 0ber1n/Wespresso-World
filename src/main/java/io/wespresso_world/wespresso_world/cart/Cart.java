@@ -4,14 +4,19 @@ import jakarta.persistence.*;
 import lombok.Data;
 import java.util.List;
 import java.util.ArrayList;
+import io.swagger.v3.oas.annotations.media.Schema;
 
 @Entity
 @Data                  // Generates getters, setters, toString, equals, and hashCode methods
+@Schema(description = "Shopping cart details") // Adds OpenAPI schema description for API documentation 
 public class Cart {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY) // Auto-generates the ID
+    
+    @Schema(description = "Unique identifier for the shopping cart")
     private Long id;
 
+    @Schema(description = "Name of the customer who owns the shopping cart")        
     private String customerName;
 
     // One cart can have multiple items
