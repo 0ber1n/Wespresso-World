@@ -43,4 +43,16 @@ public class CartService {
         return cartRepository.save(cart);
 
     }
+
+    // Retrieves a cart by its ID
+    public Cart getCart(Long cartId) {
+        return cartRepository.findById(cartId)
+                .orElseThrow(() -> new RuntimeException("Cart not found"));
+    }
+    // Create the getCartOwner
+    public String getCartOwner(Long cartId) {
+        return cartRepository.findById(cartId)
+                .orElseThrow(() -> new RuntimeException("Cart not found"))
+                .getCustomerName();
+    }
 }

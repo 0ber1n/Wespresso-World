@@ -3,8 +3,10 @@ package io.wespresso_world.wespresso_world.user;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
@@ -15,6 +17,7 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 
 @Configuration
 @EnableWebSecurity
+@EnableMethodSecurity
 public class SecurityConfig {
 
     @Autowired
@@ -31,6 +34,13 @@ public class SecurityConfig {
                 .requestMatchers("/h2-console/**").permitAll() // Allow H2 console access
                 .requestMatchers("/swagger-ui/**", "/api-docs/**").hasRole("ADMIN") // Allow Swagger UI access
                 .requestMatchers("/actuator/**").authenticated()
+                .requestMatchers(HttpMethod.DELETE, "/menu/**").hasRole("admin")
+                .requestMatchers(HttpMethod.POST, "/menu/**").hasRole("admin")
+                .requestMatchers(HttpMethod.PATCH, "/menu/**").hasRole("admin")
+                .requestMatchers(HttpMethod.PUT, "/menu/**").hasRole("admin")
+                .requestMatchers(HttpMethod.DELETE, "/beans/**").hasRole("admin")
+                .requestMatchers(HttpMethod.POST, "/beans/**").hasRole("admin")
+                .requestMatchers(HttpMethod.PATCH, "/beans/**").hasRole("admin")
                 .anyRequest().authenticated()
             )
             .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
