@@ -4,21 +4,27 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Bean;
+import org.springframework.security.crypto.password.PasswordEncoder;
 
 import io.wespresso_world.wespresso_world.drinks.Drinks;
-import io.wespresso_world.wespresso_world.drinks.DrinksRepository;	
+import io.wespresso_world.wespresso_world.drinks.DrinksRepository;
+import io.wespresso_world.wespresso_world.user.User;
 import io.wespresso_world.wespresso_world.beans.Beans;
 import io.wespresso_world.wespresso_world.beans.BeansRepository;
+import io.wespresso_world.wespresso_world.user.UserRepository;
+
 
 @SpringBootApplication
 public class WespressoWorldApplication {
+
+
 
 	public static void main(String[] args) {
 		SpringApplication.run(WespressoWorldApplication.class, args);
 	}
 
 	@Bean
-	CommandLineRunner initDatabase(DrinksRepository drinksRepository, BeansRepository beansRepository) {
+	CommandLineRunner initDatabase(DrinksRepository drinksRepository, BeansRepository beansRepository, UserRepository userRepository, PasswordEncoder passwordEncoder) {
 		return args -> {
 			// Seed drinks: Initialize the database with some sample data
 			drinksRepository.save(new Drinks(null, "Espresso", "Strong and bold", 2.50));
@@ -30,6 +36,17 @@ public class WespressoWorldApplication {
 			beansRepository.save(new Beans(null, "Green Get Pwned", "Smooth and sweet", "Ethiopia", null, true, 5.00));
 			beansRepository.save(new Beans(null, "Rooted", "Citrusy and bright", "Brazil", "Light", false, 16.00));
 			beansRepository.save(new Beans(null, "Green Rooted", "Citrusy and bright", "Brazil", null, true, 5.50));
+		
+			// Seed admin user: Initialize the database with an admin user for testing
+			if (userRepository.findByUsername("admin").isEmpty()) {
+				User admin = new User();
+				admin.setUsername("admin");
+				admin.setEmail("admin@admin.com");
+				admin.setPassword(passwordEncoder.encode("admin123"));
+				admin.setRole(User.Role.admin);
+				userRepository.save(admin);
+			}
+		
 		};
 	}
 
