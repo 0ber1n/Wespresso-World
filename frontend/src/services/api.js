@@ -26,11 +26,11 @@ export const login = (credentials) => api.post('/auth/login', credentials);
 export const getProfile = () => api.get('/auth/profile');
 
 // Menu endpoints
-export const getMenus = () => api.get('/menus');
-export const getMenuById = (id) => api.get(`/menus/${id}`);
-export const createMenu = (menuData) => api.post('/menus', menuData);
-export const updateMenu = (id, menuData) => api.put(`/menus/${id}`, menuData);
-export const deleteMenu = (id) => api.delete(`/menus/${id}`);
+export const getMenu = () => api.get('/menu');
+export const getMenuById = (id) => api.get(`/menu/${id}`);
+export const createMenu = (menuData) => api.post('/menu', menuData);
+export const updateMenu = (id, menuData) => api.put(`/menu/${id}`, menuData);
+export const deleteMenu = (id) => api.delete(`/menu/${id}`);
 
 // Beans endpoints
 export const getBeans = () => api.get('/beans');
@@ -40,7 +40,15 @@ export const updateBean = (id, beanData) => api.put(`/beans/${id}`, beanData);
 export const deleteBean = (id) => api.delete(`/beans/${id}`);
 
 // Carts endpoints
-export const getCart = () => api.get('/carts');
-export const addToCart = (itemData) => api.post('/carts', itemData);
-export const updateCartItem = (id, itemData) => api.put(`/carts/${id}`, itemData);
-export const removeFromCart = (id) => api.delete(`/carts/${id}`);
+export const createCart = (cartData) => api.post('/cart', cartData);
+export const getCart = (cartId) => api.get(`/cart/${cartId}`);
+export const getCartOwner = (cartId) => api.get(`/cart/${cartId}/owner`);
+export const addDrinkToCart = (cartId, itemData) => api.post(`/cart/${cartId}/add-drink`, itemData);
+export const addBeanToCart = (cartId, beanData) => api.post(`/cart/${cartId}/add-beans`, beanData);
+
+// Logout function to clear the token from session storage
+export const logout = () => {
+  sessionStorage.removeItem('token');
+};
+
+export default api;

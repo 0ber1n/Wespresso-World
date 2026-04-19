@@ -1,11 +1,13 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { login } from "../services/api";
+import { login, createCart } from "../services/api";
+import { useAuth } from "../context/AuthContext";
 
 function Login() {
     const [credentials, setCredentials] = useState({ username: "", password: "" });
     const [error, setError] = useState(null);
     const navigate = useNavigate();
+    const { login: authLogin } = useAuth();
 
     const handleChange = (e) => {
         setCredentials({ ...credentials, [e.target.name]: e.target.value });
@@ -16,6 +18,9 @@ function Login() {
         try {
             const response = await login(credentials);
             sessionStorage.setItem("token", response.data.token);
+            const cartResponse = await createCart({customerName: credentials.username});
+            sessionStorage.setItem("cartId", cartResponse.data.id);
+            authLogin(response.data, response.data.token);
             navigate("/");
         } catch (err) {
             setError("Invalid username or password");

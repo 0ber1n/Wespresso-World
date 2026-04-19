@@ -1,6 +1,6 @@
-import { useStat, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
-import { getCart, getMenus, addDrinkToCart } from "../services/api";
+import { getCart, getMenu, getBeans, addBeanToCart, addDrinkToCart } from "../services/api";
 
 function Cart() {
     const { cartId } = useParams();
@@ -8,16 +8,19 @@ function Cart() {
     const [menu, setMenu] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
+    const [beans, setBeans] = useState([]);
 
     useEffect(() => {
         const fetchData = async () => {
             try {
-                const [cartResponse, menuResponse] = await Promise.all([
+                const [cartResponse, menuResponse, beansResponse] = await Promise.all([
                     getCart(cartId),
                     getMenu(),
+                    getBeans(),
                 ]);
                 setCart(cartResponse.data);
                 setMenu(menuResponse.data);
+                setBeans(beansResponse.data);
             } catch (err) {
                 setError("Failed to load cart or menu");
             } finally {
@@ -30,10 +33,19 @@ function Cart() {
 
     const handleAddToCart = async (drinkId) => {
         try {
-            const response = await addDrinkToCart(cartId, drinkId);
+            const response = await addDrinkToCart(cartId, {drinkId, quantity: 1});
             setCart(response.data);
         } catch (err) {
             setError("Failed to add drink to cart");
+        }
+    };
+
+    const handleAddBeansToCart = async (beansId) => {
+        try {
+            const response = await addBeanToCart(cartId, {beanId, quantity: 1} );
+            setCart(response.data);
+        } catch (err) {
+            setError("Failed to add beans to cart");
         }
     };
 
@@ -55,7 +67,7 @@ function Cart() {
                     </div>
                 ))
             )}
-            <h3>Total" ${cart.totalPrice}</h3>
+            <h3>Total: ${cart.totalPrice}</h3>
             <h2>Add More Drinks:</h2>
             {menu.map((drink) => (
                 <div key={drink.id}>
@@ -65,7 +77,16 @@ function Cart() {
                     <button onClick={() => handleAddToCart(drink.id)}>Add to Cart</button>
                 </div>
             ))}
-        </div>
+            <h2>Add More Beans:</h2>
+            {beans.map((bean) => (
+                <div key={bean.id}>
+                    <h3>{bean.name}</h3>
+                    <p>{bean.description}</p>
+                    <p>Price: ${bean.price}</p>
+                    <button onClick={() => handleAddBeansToCart(bean.id)}>Add to Cart</button>
+                </div>
+            ))}
+        </div>      
     );
 }
 
