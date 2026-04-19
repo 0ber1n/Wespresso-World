@@ -5,6 +5,10 @@ target/
 !**/src/test/**/target/
 .DS_Store
 *.class 
+backend/target/
+frontend/node_modules/
+frontend/dist/
+*.db
 
 ### STS ###
 .apt_generated

@@ -62,4 +62,21 @@ public class AuthController {
         return ResponseEntity.ok(Map.of("token", token));
     }
 
+    @Operation(summary = "Get the profile of the authenticated user")
+    @GetMapping("/profile")
+    public ResponseEntity<?> profile(@RequestHeader("Authorization") String authHeader) {
+        String token = authHeader.substring(7); // Remove "Bearer " prefix
+        String username = jwtService.extractUsername(token);
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+        
+        return ResponseEntity.ok(Map.of(
+            "id", user.getId(),
+            "username", user.getUsername(),
+            "email", user.getEmail(),
+            "role", user.getRole()
+        ));
+    }   
+
+
 }
