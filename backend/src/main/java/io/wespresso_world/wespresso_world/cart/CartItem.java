@@ -11,7 +11,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 @Schema (description = "Details of an item in the shopping cart") // Adds OpenAPI schema description for API documentation
 public class CartItem {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY) // Auto-generates the ID
+    @GeneratedValue(strategy = GenerationType.AUTO) // Auto-generates the ID
     
     @Schema(description = "Unique identifier for the cart item")
     private Long id;

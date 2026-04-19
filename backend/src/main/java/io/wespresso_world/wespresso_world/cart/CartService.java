@@ -2,7 +2,6 @@ package io.wespresso_world.wespresso_world.cart;
 
 import org.springframework.stereotype.Service;
 import org.springframework.beans.factory.annotation.Autowired;
-import java.util.Optional;
 import io.wespresso_world.wespresso_world.beans.BeansRepository;    
 import io.wespresso_world.wespresso_world.drinks.DrinksRepository;
 
@@ -40,7 +39,7 @@ public class CartService {
         item.setCategory("drink");
         item.setCart(cart);
 
-        cart.getItems().add(item);
+        cart.addItem(item);
         return cartRepository.save(cart);
 
     }
@@ -60,7 +59,7 @@ public class CartService {
         item.setCategory("bean");
         item.setCart(cart);
 
-        cart.getItems().add(item);
+        cart.addItem(item);
         return cartRepository.save(cart);
 
     }

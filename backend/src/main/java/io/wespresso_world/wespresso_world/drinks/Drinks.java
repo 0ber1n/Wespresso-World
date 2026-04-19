@@ -14,7 +14,7 @@ import lombok.AllArgsConstructor;
 @Schema(description = "Drink product details") // Adds OpenAPI schema description for API documentation 
 public class Drinks {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY) // Auto-generates the ID
+    @GeneratedValue(strategy = GenerationType.AUTO) // Auto-generates the ID
     @Schema(description = "Unique identifier for the drink")
     private Long id;
 

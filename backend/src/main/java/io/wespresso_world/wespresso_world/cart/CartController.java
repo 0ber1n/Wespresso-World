@@ -57,7 +57,7 @@ public class CartController {
     @PreAuthorize("hasRole('admin') or authentication.name == @cartService.getCartOwner(#cartId)")
     @PostMapping("/{cartId}/add-beans")
     public Cart addBeansToCart(@PathVariable Long cartId, @RequestBody CartRequest request) {
-        return cartService.addBeansToCart(cartId, request.getDrinkId(), request.getQuantity());
+        return cartService.addBeansToCart(cartId, request.getBeansId(), request.getQuantity());
     }   
     
 

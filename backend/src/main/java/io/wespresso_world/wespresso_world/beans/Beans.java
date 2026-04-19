@@ -14,7 +14,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 @Schema(description = "Coffee bean product details") // Adds OpenAPI schema description for API documentation
 public class Beans {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY) // Auto-generates the ID
+    @GeneratedValue(strategy = GenerationType.AUTO) // Auto-generates the ID
     
     @Schema(description = "Unique identifier for the coffee bean")
     private Long id;
