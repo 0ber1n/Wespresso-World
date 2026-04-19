@@ -52,12 +52,22 @@ public class CartController {
         return cartService.addDrinkToCart(cartId, request.getDrinkId(), request.getQuantity());
     }
 
+    // Adds beans to the cart  (POST /cart/{cartId}/add-beans with body {"beansId": 1, "quantity": 2})
+    @Operation(summary = "Add coffee beans to the shopping cart", description = "Adds coffee beans to the specified shopping cart") // Adds OpenAPI operation summary and description for API documentation
+    @PreAuthorize("hasRole('admin') or authentication.name == @cartService.getCartOwner(#cartId)")
+    @PostMapping("/{cartId}/add-beans")
+    public Cart addBeansToCart(@PathVariable Long cartId, @RequestBody CartRequest request) {
+        return cartService.addBeansToCart(cartId, request.getBeansId(), request.getQuantity());
+    }   
     
 
 }
 class CartRequest {
     @Schema(description = "Unique identifier for the drink to be added to the cart")
     private Long drinkId;
+
+    @Schema(description = "Unique identifier for the coffee beans to be added to the cart")
+    private Long beansId;
 
     @Schema(description = "Quantity of the drink to be added to the cart")
     private Integer quantity;
@@ -69,10 +79,13 @@ class CartRequest {
     public Long getDrinkId() { return drinkId; }
     public Integer getQuantity() { return quantity; }
     public String getCustomerName() { return customerName; }
+    public Long getBeansId() { return beansId; }
 
+    public void setBeansId(Long beansId) { this.beansId = beansId;}
     public void setDrinkId(Long drinkId) { this.drinkId = drinkId;}
     public void setQuantity(Integer quantity) {this.quantity = quantity;}
     public void setCustomerName(String customerName) { this.customerName = customerName;}
 
    
+
 }

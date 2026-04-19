@@ -26,13 +26,12 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
+            .cors(cors -> cors.configure(http))
             .csrf(csrf -> csrf.disable())
             .headers(headers -> headers.frameOptions(frameOptions -> frameOptions.disable())) // Allow H2 console in iframes
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/auth/**").permitAll()
-                .requestMatchers("/h2-console/**").permitAll() // Allow H2 console access
-                .requestMatchers("/swagger-ui/**", "/api-docs/**").hasRole("ADMIN") // Allow Swagger UI access
+                .requestMatchers("/swagger-ui/**", "/api-docs/**").hasRole("admin") // Allow Swagger UI access
                 .requestMatchers("/actuator/**").authenticated()
                 .requestMatchers(HttpMethod.DELETE, "/menu/**").hasRole("admin")
                 .requestMatchers(HttpMethod.POST, "/menu/**").hasRole("admin")
@@ -41,6 +40,12 @@ public class SecurityConfig {
                 .requestMatchers(HttpMethod.DELETE, "/beans/**").hasRole("admin")
                 .requestMatchers(HttpMethod.POST, "/beans/**").hasRole("admin")
                 .requestMatchers(HttpMethod.PATCH, "/beans/**").hasRole("admin")
+                // Permit all for GET requests.
+                .requestMatchers("/auth/**").permitAll()
+                .requestMatchers("/h2-console/**").permitAll() // Allow H2 console access
+                .requestMatchers("/menu/**").permitAll()
+                .requestMatchers("/beans/**").permitAll()   
+                .requestMatchers(HttpMethod.POST, "/cart/**").authenticated()
                 .anyRequest().authenticated()
             )
             .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
