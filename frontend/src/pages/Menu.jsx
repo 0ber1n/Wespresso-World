@@ -37,10 +37,10 @@ function Menu() {
         }
     };
 
-    const handleaddBean = async (beanId) => {
+    const handleaddBean = async (beansId) => {
         try {
             const cartId = sessionStorage.getItem("cartId");
-            await addBeanToCart(cartId, { beanId, quantity: 1 });
+            await addBeanToCart(cartId, { beansId: beansId, quantity: 1 });
             alert("Bean added to cart!");
         } catch (err) {
             setError("Failed to add bean to cart");

@@ -41,7 +41,7 @@ function Cart() {
 
   const handleAddBeansToCart = async (beansId) => {
     try {
-      const response = await addBeanToCart(cartId, { beanId: beansId, quantity: 1 });
+      const response = await addBeanToCart(cartId, { beansId: beansId, quantity: 1 });
       setCart(response.data);
     } catch (err) {
       setError("Failed to add beans to cart");

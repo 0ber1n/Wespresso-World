@@ -45,7 +45,8 @@ public class SecurityConfig {
                 .requestMatchers("/h2-console/**").permitAll() // Allow H2 console access
                 .requestMatchers("/menu/**").permitAll()
                 .requestMatchers("/beans/**").permitAll()   
-               .anyRequest().authenticated()
+                .requestMatchers(HttpMethod.POST, "/cart/**").authenticated()
+                .anyRequest().authenticated()
             )
             .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
 

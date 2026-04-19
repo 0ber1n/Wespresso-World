@@ -5,6 +5,7 @@ import Login from './pages/Login';
 import Register from './pages/Register';
 import ProtectedRoute from "./components/ProtectedRoute";
 import Navbar from "./components/Navbar";
+import Admin from "./pages/Admin";
 
 function App() {
   return (
@@ -14,6 +15,11 @@ function App() {
         <Route path="/" element={<Menu />} />
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
+        <Route path="/admin" element={
+          <ProtectedRoute adminOnly>
+            <Admin />
+          </ProtectedRoute>
+        } />
         <Route path="/cart/:cartId" element={
           <ProtectedRoute>
             <Cart />
