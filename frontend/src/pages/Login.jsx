@@ -18,6 +18,7 @@ function Login() {
         try {
             const response = await login(credentials);
             sessionStorage.setItem("token", response.data.token);
+            const profileResponse = await getProfile();
             const cartResponse = await createCart({customerName: credentials.username});
             sessionStorage.setItem("cartId", cartResponse.data.id);
             authLogin(response.data, response.data.token);
