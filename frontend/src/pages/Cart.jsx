@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
 import { getCart, getMenu, getBeans, addBeanToCart, addDrinkToCart } from "../services/api";
+import ErrorPage from "../components/ErrorPage";
 
 function Cart() {
   const { cartId } = useParams();
@@ -54,11 +55,7 @@ function Cart() {
     </div>
   );
 
-  if (error) return (
-    <div className="flex justify-center items-center h-screen bg-amber-50">
-      <p className="text-red-500 text-xl">{error}</p>
-    </div>
-  );
+  if (error) return <ErrorPage message={error} />;
 
   return (
     <div className="bg-amber-50 min-h-screen p-8">

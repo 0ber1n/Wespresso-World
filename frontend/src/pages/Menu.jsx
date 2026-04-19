@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import {getMenu, getBeans, addBeanToCart, addDrinkToCart } from "../services/api";
 import { useAuth } from "../context/AuthContext";
+import ErrorPage from "../components/ErrorPage";
 
 function Menu() {
     const [drinks, setDrinks] = useState([]);
@@ -49,7 +50,7 @@ function Menu() {
 
 
     if (loading) return (<div className="flex justify-center items-center">Loading menu...</div>);
-    if (error) return (<div className="flex justify-center items-center"><p>{error}</p></div>);
+    if (error) return <ErrorPage message={error} />;
 
     return (
         <div className="bg-amber-50 min-h-screen p-8">
