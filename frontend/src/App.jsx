@@ -6,6 +6,8 @@ import Register from './pages/Register';
 import ProtectedRoute from "./components/ProtectedRoute";
 import Navbar from "./components/Navbar";
 import Admin from "./pages/Admin";
+import SwaggerUI from "./pages/SwaggerPage";
+
 
 function App() {
   return (
@@ -23,6 +25,11 @@ function App() {
         <Route path="/cart/:cartId" element={
           <ProtectedRoute>
             <Cart />
+          </ProtectedRoute>
+        } />
+        <Route path="/swagger-ui" element={
+          <ProtectedRoute adminOnly>
+            <SwaggerUI />
           </ProtectedRoute>
         } />
       </Routes>

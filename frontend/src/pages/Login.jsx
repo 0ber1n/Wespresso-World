@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
-import { login, createCart, getProfile } from "../services/api";
+import { login, getMyCart, getProfile } from "../services/api";
 import { useAuth } from "../context/AuthContext";
 
 function Login() {
@@ -22,9 +22,12 @@ function Login() {
     e.preventDefault();
     try {
       const response = await login(credentials);
+      console.log("Login ok");
       sessionStorage.setItem("token", response.data.token);
       const profileResponse = await getProfile();
-      const cartResponse = await createCart({ customerName: credentials.username });
+      console.log("Profile ok", profileResponse.data);
+      const cartResponse = await getMyCart();
+      console.log("Cart ok", cartResponse.data);
       sessionStorage.setItem("cartId", cartResponse.data.id);
       authLogin(profileResponse.data, response.data.token);
       setLoggedIn(true);
