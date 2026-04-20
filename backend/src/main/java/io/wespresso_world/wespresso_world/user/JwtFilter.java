@@ -14,10 +14,14 @@ import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
 import java.util.List;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 @Component
 public class JwtFilter extends OncePerRequestFilter {
 
+    private static final Logger log = LoggerFactory.getLogger(JwtFilter.class);
+    
     @Autowired
     private JwtService jwtService;
 
@@ -28,18 +32,28 @@ public class JwtFilter extends OncePerRequestFilter {
 
         if (authorizationHeader != null && authorizationHeader.startsWith("Bearer ")) {
             String token = authorizationHeader.substring(7);
-            String username = jwtService.extractUsername(token);
 
-            if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
-                if (username != null && jwtService.isTokenValid(token, username)) {
-                    List<SimpleGrantedAuthority> authorities = jwtService.extractAuthorities(token);
-                    UsernamePasswordAuthenticationToken authenticationToken =
-                            new UsernamePasswordAuthenticationToken(username, null, authorities);
-                    authenticationToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
-                    SecurityContextHolder.getContext().setAuthentication(authenticationToken);
-                }
+            try {
+                log.debug("Token received: {}", token);
+                String username = jwtService.extractUsername(token);
+                log.debug("Username extracted: {}", username);
+
+                if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
+                    if (username != null && jwtService.isTokenValid(token, username)) {
+                        log.debug("Token is valid!");
+                        List<SimpleGrantedAuthority> authorities = jwtService.extractAuthorities(token);
+                        UsernamePasswordAuthenticationToken authenticationToken =
+                                new UsernamePasswordAuthenticationToken(username, null, authorities);
+                        authenticationToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+                        SecurityContextHolder.getContext().setAuthentication(authenticationToken);
+                    } else {
+                        log.debug("Token is invalid!");
+                    }
+                }    
+            } catch (Exception e){
+                // token parsing failed, continue without authentication
             }
-        }
+            } 
 
         filterChain.doFilter(request, response);
     }

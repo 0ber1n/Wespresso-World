@@ -67,14 +67,15 @@ public class AuthController {
     public ResponseEntity<?> profile(@RequestHeader("Authorization") String authHeader) {
         String token = authHeader.substring(7); // Remove "Bearer " prefix
         String username = jwtService.extractUsername(token);
-        User user = userRepository.findByUsername(username)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+        Long userID = jwtService.extractUserId(token);
+        String role = jwtService.extractRole(token);
+        String email = jwtService.extractEmail(token);
         
         return ResponseEntity.ok(Map.of(
-            "id", user.getId(),
-            "username", user.getUsername(),
-            "email", user.getEmail(),
-            "role", user.getRole()
+            "id", userID,
+            "username", username,
+            "email", email,
+            "role", role
         ));
     }   
 
