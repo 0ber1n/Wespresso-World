@@ -1,5 +1,6 @@
 import axios from 'axios';
 
+
 const API_URL = 'http://localhost:1337/api/v1';
 
 const api = axios.create({
@@ -40,7 +41,7 @@ export const updateBean = (id, beanData) => api.put(`/beans/${id}`, beanData);
 export const deleteBean = (id) => api.delete(`/beans/${id}`);
 
 // Carts endpoints
-export const createCart = (cartData) => api.post('/cart', cartData);
+export const getMyCart = () => api.get('/cart/my-cart');
 export const getCart = (cartId) => api.get(`/cart/${cartId}`);
 export const getCartOwner = (cartId) => api.get(`/cart/${cartId}/owner`);
 export const addDrinkToCart = (cartId, itemData) => api.post(`/cart/${cartId}/add-drink`, itemData);

@@ -17,9 +17,14 @@ function Navbar() {
       <Link to="/" className='text-2xl font-bold hover:text-amber-200'>Wespresso World</Link>
       <div className="flex items-center gap-4">
         {user && user.role === 'admin' && (
+         <>
           <Link to="/admin" className="bg-amber-700 hover:bg-amber-600 px-4 py-2 rounded-lg transition">
             Admin Panel
           </Link>
+          <Link to="/swagger-ui" className="bg-amber-700 hover:bg-amber-600 px-4 py-2 rounded-lg transition">
+            API Docs
+          </Link>
+         </>
       )}
         {user ? (
           <>

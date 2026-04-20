@@ -8,10 +8,14 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.RequestHeader;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import io.wespresso_world.wespresso_world.user.JwtService;
+
+
 
 @Tag(name = "Cart API", description = "Endpoints for managing shopping carts") // Adds OpenAPI tag for grouping endpoints in documentation
 @RestController
@@ -20,6 +24,19 @@ public class CartController {
 
     @Autowired
     private CartService cartService;
+
+    @Autowired
+    private JwtService jwtService; 
+
+    @Operation(summary = "Get or create the authenticated user's shopping cart", description = "Retrieves the shopping cart for the authenticated user, or creates a new one if it doesn't exist") // Adds OpenAPI operation summary and description for API documentation
+    @GetMapping("/my-cart")
+    public Cart getMyCart(@RequestHeader("Authorization") String authHeader) {
+        String token = authHeader.substring(7);
+        String username = jwtService.extractUsername(token);
+        Long userId = jwtService.extractUserId(token);
+        return cartService.getOrCreateCart(userId, username);
+    }
+    
 
     // Get cart by ID
     @Operation(summary = "Get a cart by ID")
@@ -44,7 +61,7 @@ public class CartController {
         return cartService.createCart(request.getCustomerName());
     }
 
-    // Adds an item to the cart  (POST /cart/{cartId}/add-drink with body {"drinkId": 1, "quantity": 2})
+        // Adds an item to the cart  (POST /cart/{cartId}/add-drink with body {"drinkId": 1, "quantity": 2})
     @Operation(summary = "Add a drink to the shopping cart", description = "Adds a drink to the specified shopping cart") // Adds OpenAPI operation summary and description for API documentation
     @PreAuthorize("hasRole('admin') or authentication.name == @cartService.getCartOwner(#cartId)")
     @PostMapping("/{cartId}/add-drink")

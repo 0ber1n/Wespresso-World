@@ -24,6 +24,16 @@ public class CartService {
         return cartRepository.save(cart);
     }
 
+    public Cart getOrCreateCart(Long userId, String customerName) {
+        return cartRepository.findByUserId(userId)
+                .orElseGet(() -> {
+                    Cart newCart = new Cart();
+                    newCart.setCustomerName(customerName);
+                    newCart.setUserId(userId);
+                    return cartRepository.save(newCart);
+                });
+    }
+
     public Cart addDrinkToCart(Long cartId, Long drinkId, int quantity) {
         Cart cart = cartRepository.findById(cartId)
                 .orElseThrow(() -> new RuntimeException("Cart not found"));

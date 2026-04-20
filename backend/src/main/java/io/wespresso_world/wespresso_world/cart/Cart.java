@@ -19,6 +19,9 @@ public class Cart {
     @Schema(description = "Name of the customer who owns the shopping cart")        
     private String customerName;
 
+    @Schema(description = "Unique identifier for the user associated with the shopping cart")
+    private Long userId;
+
     // One cart can have multiple items
     @OneToMany(mappedBy = "cart", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<CartItem> items = new ArrayList<>();
