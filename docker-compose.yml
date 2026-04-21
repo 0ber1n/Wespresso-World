@@ -1,15 +1,10 @@
 version: '3.8'
 services:
-  backend:
-    build: ./backend
+  wespresso:
+    image: ghcr.io/0ber1n/wespresso-world:latest
     ports:
-      - "1337:1337"
+      - "31337:80"   # frontend
+      - "1337:1337"  # backend
     env_file:
       - .env
 
-  frontend:
-    build: ./frontend
-    ports:
-      - "31337:80"
-    depends_on:
-      - backend
