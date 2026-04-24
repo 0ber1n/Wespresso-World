@@ -3,6 +3,8 @@ import Menu from './pages/Menu';
 import Cart from './pages/Cart';
 import Checkout from './pages/Checkout';
 import OrderConfirmation from './pages/OrderConfirmation';
+import Orders from './pages/Orders';
+import Profile from './pages/Profile';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import ProtectedRoute from "./components/ProtectedRoute";
@@ -37,6 +39,16 @@ function App() {
         <Route path="/order/:orderId" element={
           <ProtectedRoute>
             <OrderConfirmation />
+          </ProtectedRoute>
+        } />
+        <Route path="/orders" element={
+          <ProtectedRoute>
+            <Orders />
+          </ProtectedRoute>
+        } />
+        <Route path="/profile" element={
+          <ProtectedRoute>
+            <Profile />
           </ProtectedRoute>
         } />
         <Route path="/swagger-ui" element={
