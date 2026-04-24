@@ -47,6 +47,11 @@ export const getCartOwner = (cartId) => api.get(`/cart/${cartId}/owner`);
 export const addDrinkToCart = (cartId, itemData) => api.post(`/cart/${cartId}/add-drink`, itemData);
 export const addBeanToCart = (cartId, beanData) => api.post(`/cart/${cartId}/add-beans`, beanData);
 
+// Order endpoints
+export const checkout = (cartId, orderData) => api.post(`/order/checkout/${cartId}`, orderData);
+export const getOrder = (orderId) => api.get(`/order/${orderId}`);
+export const getMyOrders = () => api.get('/order/my-orders');
+
 // Logout function to clear the token from session storage
 export const logout = () => {
   sessionStorage.removeItem('token');

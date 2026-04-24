@@ -1,10 +1,11 @@
 import { useState, useEffect } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import { getCart, getMenu, getBeans, addBeanToCart, addDrinkToCart } from "../services/api";
 import ErrorPage from "../components/ErrorPage";
 
 function Cart() {
   const { cartId } = useParams();
+  const navigate = useNavigate();
   const [cart, setCart] = useState(null);
   const [menu, setMenu] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -80,8 +81,15 @@ function Cart() {
             </div>
           ))
         )}
-        <div className="mt-4 text-right">
+        <div className="mt-4 flex justify-between items-center">
           <h3 className="text-xl font-bold text-amber-900">Total: ${cart.totalPrice}</h3>
+          <button
+            onClick={() => navigate(`/checkout/${cartId}`)}
+            disabled={cart.items.length === 0}
+            className="bg-amber-800 hover:bg-amber-700 disabled:bg-amber-300 text-white px-6 py-2 rounded-lg font-semibold transition"
+          >
+            Proceed to Checkout
+          </button>
         </div>
       </div>
 

@@ -35,6 +35,9 @@ public class CartService {
     }
 
     public Cart addDrinkToCart(Long cartId, Long drinkId, int quantity) {
+        if (quantity <= 0) {
+            throw new IllegalArgumentException("Quantity must be greater than zero");
+        }
         Cart cart = cartRepository.findById(cartId)
                 .orElseThrow(() -> new RuntimeException("Cart not found"));
 
@@ -55,6 +58,9 @@ public class CartService {
     }
 
     public Cart addBeansToCart(Long cartId, Long beansId, int quantity) {
+        if (quantity <= 0) {
+            throw new IllegalArgumentException("Quantity must be greater than zero");
+        }
         Cart cart = cartRepository.findById(cartId)
                 .orElseThrow(() -> new RuntimeException("Cart not found"));
 
