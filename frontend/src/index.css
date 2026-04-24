@@ -1,1 +1,79 @@
 @import "tailwindcss";
+
+/* Self-hosted fonts */
+@import "@fontsource/dm-sans/300.css";
+@import "@fontsource/dm-sans/400.css";
+@import "@fontsource/dm-sans/500.css";
+@import "@fontsource/dm-sans/600.css";
+@import "@fontsource/playfair-display/600.css";
+@import "@fontsource/playfair-display/700.css";
+
+/* Brand design tokens */
+@theme {
+  /* Forest greens */
+  --color-forest-950: #071510;
+  --color-forest-900: #0f2318;
+  --color-forest-800: #1a3a28;
+  --color-forest-700: #2a5c40;
+  --color-forest-600: #3d7a56;
+  --color-forest-300: #8cbfa4;
+  --color-forest-100: #d6ece1;
+
+  /* Warm creams */
+  --color-cream-50:  #fefcf7;
+  --color-cream-100: #faf5e9;
+  --color-cream-200: #f2e8d0;
+  --color-cream-300: #e2d0b0;
+  --color-cream-400: #cdb48a;
+
+  /* Warm browns */
+  --color-brown-950: #1a0c06;
+  --color-brown-900: #2e160c;
+  --color-brown-800: #4a2414;
+  --color-brown-700: #6b3a22;
+  --color-brown-600: #8c5230;
+  --color-brown-500: #a87050;
+  --color-brown-400: #c49070;
+  --color-brown-300: #d8b898;
+  --color-brown-200: #ead4bc;
+  --color-brown-100: #f4e8dc;
+
+  /* Terracotta */
+  --color-terra-700: #9b4422;
+  --color-terra-600: #bf5a2c;
+  --color-terra-500: #d4703e;
+  --color-terra-400: #e08c62;
+  --color-terra-100: #f8e8de;
+
+  /* Typography */
+  --font-family-sans: 'DM Sans', system-ui, sans-serif;
+  --font-family-serif: 'Playfair Display', Georgia, serif;
+}
+
+/* Base styles */
+html {
+  background-color: #faf5e9;
+  color: #2e160c;
+}
+
+body {
+  font-family: var(--font-family-sans);
+  -webkit-font-smoothing: antialiased;
+}
+
+h1, h2, h3 {
+  font-family: var(--font-family-serif);
+}
+
+/* Warm tactile card shadow */
+.shadow-warm {
+  box-shadow: 0 2px 12px rgba(46, 22, 12, 0.08), 0 1px 3px rgba(46, 22, 12, 0.05);
+}
+
+.shadow-warm-md {
+  box-shadow: 0 4px 24px rgba(46, 22, 12, 0.12), 0 2px 6px rgba(46, 22, 12, 0.06);
+}
+
+.shadow-warm-lg {
+  box-shadow: 0 8px 40px rgba(46, 22, 12, 0.16), 0 3px 10px rgba(46, 22, 12, 0.08);
+}

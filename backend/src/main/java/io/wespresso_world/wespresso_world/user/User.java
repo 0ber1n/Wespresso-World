@@ -36,6 +36,10 @@ public class User {
     @Schema(description = "Role of the user", example = "USER")
     private Role role;
 
+    @Column(columnDefinition = "BLOB")
+    @Schema(hidden = true)
+    private byte[] avatar;
+
     public enum Role {
         user,
         admin

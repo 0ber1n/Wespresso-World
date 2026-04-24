@@ -47,6 +47,23 @@ export const getCartOwner = (cartId) => api.get(`/cart/${cartId}/owner`);
 export const addDrinkToCart = (cartId, itemData) => api.post(`/cart/${cartId}/add-drink`, itemData);
 export const addBeanToCart = (cartId, beanData) => api.post(`/cart/${cartId}/add-beans`, beanData);
 
+// Profile endpoints
+export const updateEmail = (data) => api.patch('/auth/profile/email', data);
+export const updatePassword = (data) => api.patch('/auth/profile/password', data);
+export const uploadAvatar = (file) => {
+  const formData = new FormData();
+  formData.append('file', file);
+  return api.post('/auth/profile/avatar', formData, {
+    headers: { 'Content-Type': 'multipart/form-data' },
+  });
+};
+export const getAvatarUrl = (userId) => `${API_URL}/auth/profile/avatar/${userId}`;
+
+// Order endpoints
+export const checkout = (cartId, orderData) => api.post(`/order/checkout/${cartId}`, orderData);
+export const getOrder = (orderId) => api.get(`/order/${orderId}`);
+export const getMyOrders = () => api.get('/order/my-orders');
+
 // Logout function to clear the token from session storage
 export const logout = () => {
   sessionStorage.removeItem('token');
