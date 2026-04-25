@@ -1,0 +1,95 @@
+WESPRESSO WORLD — PACKAGE INVENTORY
+=====================================
+Generated: 2026-04-25
+
+
+════════════════════════════════════════════════════════════════
+  FRONTEND  (frontend/package.json — Node / npm)
+════════════════════════════════════════════════════════════════
+
+OPEN SOURCE (published to npmjs.com)
+--------------------------------------
+react                   19.2.4      MIT         UI library
+react-dom               19.2.4      MIT         React DOM renderer
+react-router-dom        7.14.1      MIT         Client-side routing
+axios                   1.15.0      MIT         HTTP client
+swagger-ui-react        5.32.4      Apache-2.0  Swagger UI component
+tailwindcss             4.2.2       MIT         Utility-first CSS framework
+@tailwindcss/vite       4.2.2       MIT         Tailwind Vite plugin
+vite                    8.0.4       MIT         Build tool / dev server
+@vitejs/plugin-react    6.0.1       MIT         React Fast Refresh for Vite
+@fontsource/dm-sans     5.2.8       MIT         Self-hosted DM Sans font
+@fontsource/inter       5.2.8       MIT         Self-hosted Inter font
+@fontsource/playfair-display
+                        5.2.8       MIT         Self-hosted Playfair Display font
+
+DEV ONLY — LINTING (open source, npmjs.com)
+--------------------------------------
+eslint                  9.39.4      MIT         JavaScript linter
+@eslint/js              9.39.4      MIT         ESLint JS rule set
+eslint-plugin-react-hooks
+                        7.0.1       MIT         React Hooks lint rules
+eslint-plugin-react-refresh
+                        0.5.2       MIT         React Refresh lint rules
+globals                 17.4.0      MIT         Global variable definitions for ESLint
+
+DEV ONLY — TYPE SUPPORT (open source, npmjs.com)
+--------------------------------------
+@types/react            19.2.14     MIT         TypeScript types for React
+@types/react-dom        19.2.3      MIT         TypeScript types for React DOM
+
+
+════════════════════════════════════════════════════════════════
+  BACKEND  (backend/pom.xml — Java / Maven)
+════════════════════════════════════════════════════════════════
+
+OPEN SOURCE (published to Maven Central)
+--------------------------------------
+spring-boot-starter-parent
+                        4.0.5       Apache-2.0  Spring Boot parent POM / dependency mgmt
+spring-boot-starter-web 4.0.5       Apache-2.0  Embedded Tomcat + Spring MVC
+spring-boot-starter-data-jpa
+                        4.0.5       Apache-2.0  Spring Data JPA + Hibernate
+spring-boot-starter-security
+                        4.0.5       Apache-2.0  Spring Security
+spring-boot-starter-actuator
+                        4.0.5       Apache-2.0  Health / metrics endpoints
+spring-boot-starter-test
+                        4.0.5       Apache-2.0  JUnit + Mockito test stack (test scope)
+lombok                  (managed)   MIT         Boilerplate code generation via annotations
+sqlite-jdbc             (managed)   Apache-2.0  SQLite JDBC driver (org.xerial)
+hibernate-community-dialects
+                        (managed)   LGPL-2.1    Hibernate dialect for SQLite
+h2                      (managed)   EPL-2.0     In-memory/embedded H2 database (alt profile)
+springdoc-openapi-starter-webmvc-ui
+                        3.0.0       Apache-2.0  OpenAPI 3 / Swagger UI auto-generation
+jjwt-api                0.13.0      Apache-2.0  JWT creation and parsing API (io.jsonwebtoken)
+jjwt-impl               0.13.0      Apache-2.0  JWT implementation (runtime)
+jjwt-jackson            0.13.0      Apache-2.0  JWT Jackson serialization (runtime)
+maven-compiler-plugin   (managed)   Apache-2.0  Maven Java compiler plugin
+spring-boot-maven-plugin
+                        (managed)   Apache-2.0  Maven plugin for building Spring Boot jars
+
+
+════════════════════════════════════════════════════════════════
+  INFRASTRUCTURE  (docker-compose.yml — Docker Hub images)
+════════════════════════════════════════════════════════════════
+
+OPEN SOURCE (pulled from Docker Hub / GitHub Container Registry)
+--------------------------------------
+ctfd/ctfd               latest      Apache-2.0  CTF platform
+                                                Source: github.com/CTFd/CTFd
+
+mariadb                 10.11       GPL-2.0     Relational database for CTFd
+                                                Source: github.com/MariaDB/server
+
+redis                   7-alpine    BSD-3       In-memory cache / session store for CTFd
+                                                Source: github.com/redis/redis
+
+GITHUB CONTAINER REGISTRY (ghcr.io — project image)
+--------------------------------------
+ghcr.io/0ber1n/wespresso-world
+                        latest      —           Wespresso World app image (this project)
+                                                Built from local Dockerfile via GitHub Actions
+
+
