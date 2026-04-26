@@ -16,15 +16,14 @@ import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayOutputStream;
 import java.util.Map;
-import org.springframework.jdbc.core.JdbcTemplate;
 import java.util.List;
-
+import org.springframework.jdbc.core.JdbcTemplate;
 
 @Tag(name = "Auth API", description = "Endpoints for user authentication and registration")
 @RestController
 @RequestMapping("/auth")
 public class AuthController {
-    
+
     @Autowired
     private UserRepository userRepository;
 
@@ -34,11 +33,13 @@ public class AuthController {
     @Autowired
     private PasswordEncoder passwordEncoder;
 
+    // [NEW] Raw JDBC for vulnerable SQLi login path
     @Autowired
-    private JdbcTemplate jdbcTemplate; // For SQLi login vuln testing
+    private JdbcTemplate jdbcTemplate;
 
+    // [NEW] Vulnerability toggles
     @Autowired
-    private VulnConfig vulnConfig; // For vulnerability toggles
+    private VulnConfig vulnConfig;
 
     @Operation(summary = "Register a new user")
     @PostMapping("/register")
@@ -67,37 +68,48 @@ public class AuthController {
         String username = request.get("username");
         String password = request.get("password");
 
+        // [NEW] Vulnerable SQLi login path — enabled by VULN_SQLI_LOGIN_ENABLED=true
+        // Uses raw string concatenation instead of parameterized queries
+        // Vulnerable to: ' OR '1'='1'-- login bypass
+        // Flag is stored in steve's email field, extractable via UNION injection
         if (vulnConfig.getSqliLogin().isEnabled()) {
-        try {
-            // [VULN] Direct string concatenation — never do this in production
-            String sql = "SELECT id, username, password, email, role FROM users " +
-                         "WHERE username = '" + username + "' " +
-                         "AND password = '" + password + "'";
+            try {
+                // [VULN] Direct string concatenation — never do this in production
+                String sql = "SELECT id, username, password, email, role FROM users " +
+                             "WHERE username = '" + username + "'";
 
-            List<User> results = jdbcTemplate.query(sql, (rs, rowNum) -> {
-                User u = new User();
-                u.setId(rs.getLong("id"));
-                u.setUsername(rs.getString("username"));
-                u.setPassword(rs.getString("password"));
-                u.setEmail(rs.getString("email"));
-                u.setRole(User.Role.valueOf(rs.getString("role")));
-                return u;
-            });
+                List<User> results = jdbcTemplate.query(sql, (rs, rowNum) -> {
+                    User u = new User();
+                    u.setId(rs.getLong("id"));
+                    u.setUsername(rs.getString("username"));
+                    u.setPassword(rs.getString("password"));
+                    u.setEmail(rs.getString("email"));
+                    u.setRole(User.Role.valueOf(rs.getString("role")));
+                    return u;
+                });
 
-            if (!results.isEmpty()) {
-                User user = results.get(0);
-                String token = jwtService.generateToken(user);
-                return ResponseEntity.ok(Map.of("token", token));
+                if (!results.isEmpty()) {
+                    User user = results.get(0);
+                    // If username matches exactly, require password check
+                    // If injection occurred (username doesn't match returned user), allow through
+                    if (user.getUsername().equals(username) &&
+                        !passwordEncoder.matches(password, user.getPassword())) {
+                        return ResponseEntity.badRequest().body("Invalid username or password");
+                    }
+                    String token = jwtService.generateToken(user);
+                    return ResponseEntity.ok(Map.of("token", token));
+                } else {
+                    return ResponseEntity.badRequest().body("Invalid username or password");
+                }
+
+            } catch (Exception e) {
+                // Swallow SQL errors to avoid leaking schema info
+                // Students can infer injection worked from response changes
+                return ResponseEntity.badRequest().body("Invalid username or password");
             }
-            return ResponseEntity.badRequest().body("Invalid username or password");
-
-        } catch (Exception e) {
-            // [NOTE] Swallow SQL errors to avoid leaking schema info
-            // Students can infer injection worked from response changes
-            return ResponseEntity.badRequest().body("Invalid username or password");
         }
-    }
 
+        // Normal safe login path — parameterized via Spring Data JPA
         User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new RuntimeException("Invalid username or password"));
 

@@ -59,8 +59,8 @@ public class WespressoWorldApplication {
 					if (userRepository.findByUsername("steve").isEmpty()) {
 						User steve = new User();
 						steve.setUsername("steve");
-						steve.setPassword("wes{$ql1_1nj3ct10n_w1ns}");  
-						steve.setEmail("steve@wespresso.com");
+						steve.setPassword(passwordEncoder.encode("admin123"));
+						steve.setEmail("wes{$ql1_1nj3ct10n_w1ns}");
 						steve.setRole(User.Role.user);
 						userRepository.save(steve);
 					}
