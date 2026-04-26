@@ -41,7 +41,7 @@ public class RateLimitFilter extends OncePerRequestFilter {
                                     HttpServletResponse response,
                                     FilterChain chain) throws ServletException, IOException {
 
-        if (vulnConfig.getRateLimitDisabled().isEnabled()) {
+        if (vulnConfig.getRateLimitBypass().isEnabled()) {
             chain.doFilter(request, response);
             return;
         }

@@ -9,7 +9,7 @@ public class VulnConfig {
 
     private JwtNone jwtNone = new JwtNone();
     private SqliLogin sqliLogin = new SqliLogin();
-    private RateLimitDisabled rateLimitDisabled = new RateLimitDisabled();
+    private RateLimitBypass rateLimitBypass = new RateLimitBypass();
 
     public static class JwtNone {
         private boolean enabled = false;
@@ -23,7 +23,7 @@ public class VulnConfig {
         public void setEnabled(boolean enabled) { this.enabled = enabled; }
     }
 
-    public static class RateLimitDisabled {
+    public static class RateLimitBypass {
         private boolean enabled = false;
         public boolean isEnabled() { return enabled; }
         public void setEnabled(boolean enabled) { this.enabled = enabled; }
@@ -31,5 +31,5 @@ public class VulnConfig {
 
     public JwtNone getJwtNone() { return jwtNone; }
     public SqliLogin getSqliLogin() { return sqliLogin; }
-    public RateLimitDisabled getRateLimitDisabled() { return rateLimitDisabled; }
+    public RateLimitBypass getRateLimitBypass() { return rateLimitBypass; }
 }
