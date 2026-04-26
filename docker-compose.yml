@@ -1,5 +1,18 @@
 version: '3.8'
+
+networks:
+  lab:
+    driver: bridge
+
+volumes:
+  ctfd-uploads:
+  ctfd-logs:
+  ctfd-db-data:
+  ctfd-redis-data:
+
 services:
+
+  # ── Target application ────────────────────────────────────────────────────
   wespresso:
     image: ghcr.io/0ber1n/wespresso-world:latest
     ports:
