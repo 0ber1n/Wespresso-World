@@ -9,12 +9,16 @@ import org.springframework.web.multipart.MultipartFile;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import io.wespresso_world.wespresso_world.VulnConfig;
 
 import javax.imageio.ImageIO;
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayOutputStream;
 import java.util.Map;
+import org.springframework.jdbc.core.JdbcTemplate;
+import java.util.List;
+
 
 @Tag(name = "Auth API", description = "Endpoints for user authentication and registration")
 @RestController
@@ -29,6 +33,12 @@ public class AuthController {
 
     @Autowired
     private PasswordEncoder passwordEncoder;
+
+    @Autowired
+    private JdbcTemplate jdbcTemplate; // For SQLi login vuln testing
+
+    @Autowired
+    private VulnConfig vulnConfig; // For vulnerability toggles
 
     @Operation(summary = "Register a new user")
     @PostMapping("/register")
@@ -56,6 +66,37 @@ public class AuthController {
     public ResponseEntity<?> login(@RequestBody Map<String, String> request) {
         String username = request.get("username");
         String password = request.get("password");
+
+        if (vulnConfig.getSqliLogin().isEnabled()) {
+        try {
+            // [VULN] Direct string concatenation — never do this in production
+            String sql = "SELECT id, username, password, email, role FROM users " +
+                         "WHERE username = '" + username + "' " +
+                         "AND password = '" + password + "'";
+
+            List<User> results = jdbcTemplate.query(sql, (rs, rowNum) -> {
+                User u = new User();
+                u.setId(rs.getLong("id"));
+                u.setUsername(rs.getString("username"));
+                u.setPassword(rs.getString("password"));
+                u.setEmail(rs.getString("email"));
+                u.setRole(User.Role.valueOf(rs.getString("role")));
+                return u;
+            });
+
+            if (!results.isEmpty()) {
+                User user = results.get(0);
+                String token = jwtService.generateToken(user);
+                return ResponseEntity.ok(Map.of("token", token));
+            }
+            return ResponseEntity.badRequest().body("Invalid username or password");
+
+        } catch (Exception e) {
+            // [NOTE] Swallow SQL errors to avoid leaking schema info
+            // Students can infer injection worked from response changes
+            return ResponseEntity.badRequest().body("Invalid username or password");
+        }
+    }
 
         User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new RuntimeException("Invalid username or password"));
