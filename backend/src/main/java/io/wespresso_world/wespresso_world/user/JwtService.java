@@ -79,98 +79,114 @@ public class JwtService {
     }
     
     public String extractRole(String token) {
-        if (vulnConfig.getJwtNone().isEnabled()) {
-            String[] parts = token.split("\\.");
-            if (parts.length == 2 || (parts.length == 3 && parts[2].isEmpty())) {
-                String role = extractClaimFromNoneToken(token, "role");
-                if (role != null) return role;
-            }
+        String[] parts = token.split("\\.");
+        if (parts.length == 2 || (parts.length == 3 && parts[2].isEmpty())) {
+            try {
+                String header = new String(Base64.getUrlDecoder().decode(parts[0]));
+                if (header.toLowerCase().contains("none")) {
+                    if (vulnConfig.getJwtNone().isEnabled()) {
+                        String role = extractClaimFromNoneToken(token, "role");
+                        if (role != null) return role;
+                    }
+                    return null; // reject silently when vuln disabled
+                }
+            } catch (Exception e) { }
         }
         return extractClaims(token).get("role", String.class);
     }
 
     public String extractEmail(String token) {
-        if (vulnConfig.getJwtNone().isEnabled()) {
-            String[] parts = token.split("\\.");
-            if (parts.length == 2 || (parts.length == 3 && parts[2].isEmpty())) {
-                String email = extractClaimFromNoneToken(token, "email");
-                if (email != null) return email;
-            }
+        String[] parts = token.split("\\.");      
+        if (parts.length == 2 || (parts.length == 3 && parts[2].isEmpty())) {
+            try {
+                String header = new String(Base64.getUrlDecoder().decode(parts[0]));
+                if (header.toLowerCase().contains("none")) {
+                    if (vulnConfig.getJwtNone().isEnabled()) {
+                        String email = extractClaimFromNoneToken(token, "email");
+                        if (email != null) return email;
+                    }
+                    return null; // reject silently when vuln disabled
+                }
+            } catch (Exception e) { }
         }
         return extractClaims(token).get("email", String.class);
     }
 
 
     public String extractUsername(String token) {
-        if (vulnConfig.getJwtNone().isEnabled()) {
-        try {
-            String[] parts = token.split("\\.");
-            if (parts.length == 2 || (parts.length == 3 && parts[2].isEmpty())) {
+    // Always detect none tokens regardless of vuln flag
+    // Without this, JJWT throws UnsupportedJwtException when vuln is disabled
+    // and a none token is presented, crashing the filter chain
+        String[] parts = token.split("\\.");
+        if (parts.length == 2 || (parts.length == 3 && parts[2].isEmpty())) {
+            try {
                 String header = new String(Base64.getUrlDecoder().decode(parts[0]));
                 if (header.toLowerCase().contains("none")) {
-                    String payload = new String(Base64.getUrlDecoder().decode(parts[1]));
-                    // extract sub from payload
-                    int subIndex = payload.indexOf("\"sub\":\"");
-                    if (subIndex != -1) {
-                        int start = subIndex + 7;
-                        int end = payload.indexOf("\"", start);
-                        return payload.substring(start, end);
+                    if (vulnConfig.getJwtNone().isEnabled()) {
+                        // Vuln enabled — extract username from forged token
+                        String payload = new String(Base64.getUrlDecoder().decode(parts[1]));
+                        int subIndex = payload.indexOf("\"sub\":\"");
+                        if (subIndex != -1) {
+                            int start = subIndex + 7;
+                            int end = payload.indexOf("\"", start);
+                            return payload.substring(start, end);
+                        }
                     }
+                    // Vuln disabled — reject none token silently
+                    return null;
                 }
+            } catch (Exception e) {
+                // fall through
             }
-        } catch (Exception e) {
-            // fall through to normal extraction
-        }
         }
         return extractClaims(token).getSubject();
     }
 
     public Long extractUserId(String token) {
-        if (vulnConfig.getJwtNone().isEnabled()) {
-            String[] parts = token.split("\\.");
-            if (parts.length == 2 || (parts.length == 3 && parts[2].isEmpty())) {
-                String userId = extractClaimFromNoneToken(token, "userId");
-                if (userId != null) return Long.parseLong(userId);
-            }
+        String[] parts = token.split("\\.");
+        if (parts.length == 2 || (parts.length == 3 && parts[2].isEmpty())) {
+            try {
+                String header = new String(Base64.getUrlDecoder().decode(parts[0]));
+                if (header.toLowerCase().contains("none")) {
+                    if (vulnConfig.getJwtNone().isEnabled()) {
+                        String userIdStr = extractClaimFromNoneToken(token, "userId");
+                        if (userIdStr != null) return Long.parseLong(userIdStr);
+                    }
+                    return null; // reject silently when vuln disabled
+                }
+            } catch (Exception e) { }
         }
         return extractClaims(token).get("userId", Long.class);
     }
 
     // Checks the token validity. This includes a vulnerable switch for none.
     public boolean isTokenValid(String token, String username) {
-        if (vulnConfig.getJwtNone().isEnabled()){
-            try {
-                String[] parts = token.split("\\.");
-                if (parts.length == 2 || (parts.length == 3 && parts[2].isEmpty())){
-                    String header = new String(Base64.getUrlDecoder().decode(parts[0]));
-                    if (header.toLowerCase().contains("\"none\"")){
-                        String payload = new String(Base64.getUrlDecoder().decode(parts[1]));
-                        return payload.contains("\"sub\":\"" + username + "\"");
-                    }
-                }
-            } catch (Exception e){
-                // Fall through to normal validation
-            }
-        }
-        String extractedUsername = extractUsername(token);
-        return extractedUsername != null && extractedUsername.equals(username) && !isTokenExpired(token);
+        String tokenUsername = extractUsername(token);
+        return (tokenUsername != null && tokenUsername.equals(username) && !isTokenExpired(token));
     }
+        
 
     public List<SimpleGrantedAuthority> extractAuthorities(String token) {
-    String role = extractRole(token);
-    return List.of(new SimpleGrantedAuthority("ROLE_" + role));
-}
+        String role = extractRole(token);
+        if (role == null) return List.of();
+        return List.of(new SimpleGrantedAuthority("ROLE_" + role));
+    }
 
     private boolean isTokenExpired(String token) {
-        if (vulnConfig.getJwtNone().isEnabled()) {
-            String[] parts = token.split("\\.");
-            if (parts.length == 2 || (parts.length == 3 && parts[2].isEmpty())) {
-                return false; // none tokens never expire in vuln mode
-            }
+        String[] parts = token.split("\\.");
+        if (parts.length == 2 || (parts.length == 3 && parts[2].isEmpty())) {
+            try {
+                String header = new String(Base64.getUrlDecoder().decode(parts[0]));
+                if (header.toLowerCase().contains("none")) {
+                    if (vulnConfig.getJwtNone().isEnabled()) {
+                        return false; // none tokens never expire in vuln mode
+                    }
+                    return true; // treat as expired when vuln disabled
+                }
+            } catch (Exception e) { }
         }
         return extractClaims(token).getExpiration().before(new Date());
     }
-
     private Claims extractClaims(String token) {
         return Jwts.parser()
                 .verifyWith(getSigningKey())

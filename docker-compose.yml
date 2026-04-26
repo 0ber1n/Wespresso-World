@@ -3,8 +3,6 @@ services:
   wespresso:
     image: ghcr.io/0ber1n/wespresso-world:latest
     ports:
-      - "31337:80"   # frontend
-      - "1337:1337"  # backend
+      - "31337:80"   # everything goes through nginx now
     env_file:
       - .env
-

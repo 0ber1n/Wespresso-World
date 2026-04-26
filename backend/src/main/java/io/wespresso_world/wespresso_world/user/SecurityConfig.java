@@ -31,7 +31,7 @@ public class SecurityConfig {
             .headers(headers -> headers.frameOptions(frameOptions -> frameOptions.disable())) // Allow H2 console in iframes
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/swagger-ui/**", "/api-docs/**").hasRole("admin") // Allow Swagger UI access
+                .requestMatchers("/swagger-ui/**", "/swagger-ui.html", "/api-docs/**").hasRole("admin")
                 .requestMatchers("/actuator/**").authenticated()
                 .requestMatchers(HttpMethod.DELETE, "/menu/**").hasRole("admin")
                 .requestMatchers(HttpMethod.POST, "/menu/**").hasRole("admin")
@@ -40,14 +40,13 @@ public class SecurityConfig {
                 .requestMatchers(HttpMethod.DELETE, "/beans/**").hasRole("admin")
                 .requestMatchers(HttpMethod.POST, "/beans/**").hasRole("admin")
                 .requestMatchers(HttpMethod.PATCH, "/beans/**").hasRole("admin")
-                // Permit all for GET requests.
+                .requestMatchers("/admin/**").hasRole("admin") // [NEW]
                 .requestMatchers("/auth/**").permitAll()
-                .requestMatchers("/h2-console/**").permitAll() // Allow H2 console access
+                .requestMatchers("/h2-console/**").permitAll()
                 .requestMatchers("/menu/**").permitAll()
-                .requestMatchers("/beans/**").permitAll()   
+                .requestMatchers("/beans/**").permitAll()
                 .requestMatchers(HttpMethod.POST, "/cart/**").authenticated()
                 .requestMatchers("/order/**").authenticated()
-                .requestMatchers("/swagger-ui/**","/swagger-ui.html","/api-docs/**").permitAll()
                 .anyRequest().authenticated()
             )
             .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);

@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { getMenu, getBeans, createMenu, createBean, deleteMenu, deleteBean, updateMenu, updateBean } from "../services/api";
+import api, { getMenu, getBeans, createMenu, createBean, deleteMenu, deleteBean, updateMenu, updateBean } from "../services/api";
 
 function Admin() {
     const [drinks, setDrinks] = useState([]);
@@ -10,6 +10,7 @@ function Admin() {
 
     const [newDrink, setNewDrink] = useState({ name: "", description: "", price: "" });
     const [newBean, setNewBean] = useState({ name: "", description: "", origin: "", roastLevel: "", isRaw: false, price: "" });
+    const [flag, setFlag] = useState(null);
 
     useEffect(() => {
         const fetchData = async () => {
@@ -25,6 +26,18 @@ function Admin() {
         };
 
         fetchData();
+    }, []);
+
+    useEffect(() => {
+        api.get('/admin/flag')
+            .then(res => {
+                if (res.data?.flag) {
+                    setFlag(res.data.flag);
+                }
+            })
+            .catch(() => {
+                // 403 for normal users — expected, do nothing
+            });
     }, []);
 
     const handleAddDrink = async (e) => {
@@ -82,6 +95,13 @@ function Admin() {
       {error && (
         <p className="bg-red-100 text-red-600 p-3 rounded-lg mb-4 text-center">{error}</p>
       )}
+
+      {flag && (
+                    <div className="bg-green-100 border border-green-400 text-green-800 rounded-xl p-6 mb-8 text-center shadow-md">
+                        <p className="text-lg font-bold mb-1">You've captured the flag!</p>
+                        <p className="font-mono text-xl tracking-wider">{flag}</p>
+                    </div>
+                )}
 
       {/* Tabs */}
       <div className="flex gap-4 mb-8">

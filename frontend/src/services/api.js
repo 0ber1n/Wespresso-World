@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 
-const API_URL = 'http://localhost:1337/api/v1';
+const API_URL = '/api/v1';
 
 const api = axios.create({
   baseURL: API_URL,
@@ -57,7 +57,7 @@ export const uploadAvatar = (file) => {
     headers: { 'Content-Type': 'multipart/form-data' },
   });
 };
-export const getAvatarUrl = (userId) => `${API_URL}/auth/profile/avatar/${userId}`;
+export const getAvatarUrl = (userId) => `/api/v1/auth/profile/avatar/${userId}`;
 
 // Order endpoints
 export const checkout = (cartId, orderData) => api.post(`/order/checkout/${cartId}`, orderData);
