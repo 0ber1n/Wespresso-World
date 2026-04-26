@@ -103,9 +103,10 @@ public class AuthController {
                 }
 
             } catch (Exception e) {
-                // Swallow SQL errors to avoid leaking schema info
-                // Students can infer injection worked from response changes
-                return ResponseEntity.badRequest().body("Invalid username or password");
+                System.out.println("SQLi query error: " + e.getMessage());
+                // [CHANGED] Return 500 on SQL error so sqlmap can distinguish
+                // true injection (200) vs false injection (400) vs error (500)
+                return ResponseEntity.status(500).body("Internal error");
             }
         }
 
