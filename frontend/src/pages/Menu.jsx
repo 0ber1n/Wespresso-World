@@ -17,6 +17,8 @@ function Menu() {
     const fetchData = async () => {
       try {
         const [drinksRes, beansRes] = await Promise.all([getMenu(), getBeans()]);
+        console.log('drinks response:', drinksRes.data);
+        console.log('beans response:', beansRes.data);
         setDrinks(drinksRes.data);
         setBeans(beansRes.data);
       } catch {

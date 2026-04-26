@@ -13,7 +13,13 @@ export default defineConfig({
   port: 5173,
   headers: {
     'Cache-Control': 'no-store'
-  }
+  },
+  proxy: {
+      '/api': {
+        target: 'http://localhost:1337',
+        changeOrigin: true
+      }
+    }
  }
 
 })

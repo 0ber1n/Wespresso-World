@@ -17,7 +17,7 @@ function SwaggerPage() {
         <div className="min-h-screen bg-amber-50 p-8">
             <h1 className="text-4xl font-bold text-amber-900 mb-8 text-center">API Documentation</h1>
             <SwaggerUI 
-                url="http://localhost:1337/api/v1/api-docs" 
+                url="/api/v1/api-docs" 
                 requestInterceptor={(request) => {
                     if (token) {
                         request.headers["Authorization"] = `Bearer ${token}`;
