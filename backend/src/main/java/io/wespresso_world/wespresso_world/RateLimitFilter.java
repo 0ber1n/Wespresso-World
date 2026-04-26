@@ -5,6 +5,8 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpServletResponseWrapper;
+
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
@@ -14,6 +16,9 @@ import java.util.concurrent.ConcurrentHashMap;
 
 @Component
 public class RateLimitFilter extends OncePerRequestFilter {
+
+    @Autowired
+    private VulnConfig vulnConfig;
 
     private static final int MAX_FAILURES = 4;
     private static final long LOCKOUT_MS = 30_000;
@@ -35,6 +40,12 @@ public class RateLimitFilter extends OncePerRequestFilter {
     protected void doFilterInternal(HttpServletRequest request,
                                     HttpServletResponse response,
                                     FilterChain chain) throws ServletException, IOException {
+
+        if (vulnConfig.getRateLimitDisabled().isEnabled()) {
+            chain.doFilter(request, response);
+            return;
+        }
+        
         String ip = resolveClientIp(request);
         long now = System.currentTimeMillis();
 
