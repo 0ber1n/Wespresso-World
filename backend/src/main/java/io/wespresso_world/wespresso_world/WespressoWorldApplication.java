@@ -12,7 +12,10 @@ import io.wespresso_world.wespresso_world.user.User;
 import io.wespresso_world.wespresso_world.beans.Beans;
 import io.wespresso_world.wespresso_world.beans.BeansRepository;
 import io.wespresso_world.wespresso_world.user.UserRepository;
-import io.wespresso_world.wespresso_world.VulnConfig;
+import io.wespresso_world.wespresso_world.cart.Cart;
+import io.wespresso_world.wespresso_world.cart.CartItem;
+import io.wespresso_world.wespresso_world.cart.CartRepository;
+import io.wespresso_world.wespresso_world.cart.CartItemRepository;
 
 
 @SpringBootApplication
@@ -30,7 +33,9 @@ public class WespressoWorldApplication {
 			BeansRepository beansRepository, 
 			UserRepository userRepository, 
 			PasswordEncoder passwordEncoder, 
-			VulnConfig VulnConfig
+			VulnConfig VulnConfig,
+			CartRepository cartRepository,
+			CartItemRepository cartItemRepository
 		) {
 			return args -> {
 				// Seed drinks: Initialize the database with some sample data
@@ -65,7 +70,27 @@ public class WespressoWorldApplication {
 						userRepository.save(steve);
 					}
 				}
-			
+
+				// Seed carts and cart items for testing
+				if (userRepository.findByUsername("admin").isPresent()) {
+            		User admin = userRepository.findByUsername("admin").get();
+
+					// Only seed if admin has no cart yet (idempotent)
+					if (cartRepository.findByUserId(admin.getId()).isEmpty()) {
+						Cart adminCart = new Cart();
+						adminCart.setCustomerName("admin");
+						adminCart.setUserId(admin.getId());
+						cartRepository.save(adminCart);
+
+						CartItem flagItem = new CartItem();
+						flagItem.setItemName("FLAG{1D0R_3xp0s3d_4dm1n_c4rt}");
+						flagItem.setPrice(0.00);
+						flagItem.setQuantity(1);
+						flagItem.setCategory("special");
+						flagItem.setCart(adminCart);
+						cartItemRepository.save(flagItem);
+					}
+				}
 			};
 	}
 
