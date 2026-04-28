@@ -15,6 +15,10 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import io.wespresso_world.wespresso_world.user.JwtService;
 
+import io.wespresso_world.wespresso_world.VulnConfig;
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 
 
 @Tag(name = "Cart API", description = "Endpoints for managing shopping carts") // Adds OpenAPI tag for grouping endpoints in documentation
@@ -28,6 +32,9 @@ public class CartController {
     @Autowired
     private JwtService jwtService; 
 
+    @Autowired
+    private VulnConfig vulnConfig;
+
     @Operation(summary = "Get or create the authenticated user's shopping cart", description = "Retrieves the shopping cart for the authenticated user, or creates a new one if it doesn't exist") // Adds OpenAPI operation summary and description for API documentation
     @GetMapping("/my-cart")
     public Cart getMyCart(@RequestHeader("Authorization") String authHeader) {
@@ -38,11 +45,20 @@ public class CartController {
     }
     
 
-    // Get cart by ID
+    // Get cart by ID. Does manual check if vuln enabled, otherwise checks user owns the cart or is admin
     @Operation(summary = "Get a cart by ID")
-    @PreAuthorize("hasRole('admin') or authentication.name == @cartService.getCartOwner(#cartId)")
     @GetMapping("/{cartId}")
     public Cart getCart(@PathVariable Long cartId) {
+        if (!vulnConfig.getCartIdor().isEnabled()) {
+            Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+            String username = auth.getName();
+            String owner = cartService.getCartOwner(cartId);
+            boolean isAdmin = auth.getAuthorities().stream().anyMatch(a -> a.getAuthority().equals("ROLE_admin"));
+            if (!isAdmin && !username.equals(owner)) {
+                throw new AccessDeniedException("You do not have permission to access this cart");
+            }
+    
+        }
         return cartService.getCart(cartId);
     }
 
