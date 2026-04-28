@@ -83,7 +83,7 @@ public class WespressoWorldApplication {
 						cartRepository.save(adminCart);
 
 						CartItem flagItem = new CartItem();
-						flagItem.setItemName("FLAG{1D0R_3xp0s3d_4dm1n_c4rt}");
+						flagItem.setItemName("wes{1D0R_3xp0s3d_4dm1n_c4rt}");
 						flagItem.setPrice(0.00);
 						flagItem.setQuantity(1);
 						flagItem.setCategory("special");
