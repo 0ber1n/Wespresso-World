@@ -36,8 +36,17 @@ public class VulnConfig {
         public void setEnabled(boolean enabled) { this.enabled = enabled; }
     }
 
+    public static class StoredXss {
+        private boolean enabled = false;
+        public boolean isEnabled() { return enabled; }
+        public void setEnabled(boolean enabled) { this.enabled = enabled; }
+    }
+
+    private StoredXss storedXss = new StoredXss();
+
     public JwtNone getJwtNone() { return jwtNone; }
     public SqliLogin getSqliLogin() { return sqliLogin; }
     public RateLimitBypass getRateLimitBypass() { return rateLimitBypass; }
     public CartIdor getCartIdor() { return cartIdor; }
+    public StoredXss getStoredXss() { return storedXss; }
 }

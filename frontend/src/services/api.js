@@ -39,6 +39,14 @@ export const createBean = (beanData) => api.post('/beans', beanData);
 export const updateBean = (id, beanData) => api.put(`/beans/${id}`, beanData);
 export const deleteBean = (id) => api.delete(`/beans/${id}`);
 
+// Vuln flags endpoint
+export const getVulnFlags = () => api.get('/vuln-flags');
+
+// Reviews endpoints
+export const getReviews = (beansId) => api.get(`/beans/${beansId}/reviews`);
+export const submitReview = (beansId, data) => api.post(`/beans/${beansId}/reviews`, data);
+export const deleteReview = (beansId, reviewId) => api.delete(`/beans/${beansId}/reviews/${reviewId}`);
+
 // Carts endpoints
 export const getMyCart = () => api.get('/cart/my-cart');
 export const getCart = (cartId) => api.get(`/cart/${cartId}`);
