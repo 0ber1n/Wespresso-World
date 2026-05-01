@@ -40,6 +40,11 @@ public class User {
     @Schema(hidden = true)
     private byte[] avatar;
 
+    @Column
+    @Schema(hidden = true)
+    private String avatarContentType;
+
+
     public enum Role {
         user,
         admin
