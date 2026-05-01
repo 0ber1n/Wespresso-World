@@ -159,11 +159,146 @@ public class AuthController {
         return ResponseEntity.ok("Email updated successfully");
     }
 
-    @Operation(summary = "Upload a JPG avatar for the authenticated user")
+    @Operation(summary = "Upload an avatar for the authenticated user")
     @PostMapping(value = "/profile/avatar", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<?> uploadAvatar(
             @RequestHeader("Authorization") String authHeader,
             @RequestParam("file") MultipartFile file) throws Exception {
+
+        Long userId = jwtService.extractUserId(authHeader.substring(7));
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        // SCENARIO 1 — Weak contains() extension check
+        // Defense:  filename must contain .jpg or .jpeg anywhere in the name
+        // Missing:  endsWith() enforcement, Content-Type check, magic byte check, re-encoding
+        // Bypass:   double extension — upload shell.jpg.exe, shell.jpg.py, etc.
+        //           .jpg appears in the name so the check passes, but the true
+        //           extension is whatever comes last. The OS and execution context
+        //           use the final extension to decide how to handle the file.
+        if (vulnConfig.getFileUploadExtOnly().isEnabled()) {
+            String originalName = file.getOriginalFilename() == null ? "" : file.getOriginalFilename().toLowerCase();
+            if (!originalName.contains(".jpg") && !originalName.contains(".jpeg")) {
+                return ResponseEntity.badRequest().body("Only JPG files are allowed");
+            }
+            byte[] bytes = file.getBytes();
+            user.setAvatar(bytes);
+            user.setAvatarContentType(file.getContentType() != null ? file.getContentType() : "application/octet-stream");
+            userRepository.save(user);
+            // Flag if the final extension is not .jpg/.jpeg — double extension bypass succeeded
+            String finalExt = originalName.contains(".") ? originalName.substring(originalName.lastIndexOf(".")) : "";
+            if (!finalExt.equals(".jpg") && !finalExt.equals(".jpeg")) {
+                return ResponseEntity.ok("Avatar uploaded successfully\nwes{file_upload_double_extension_bypass}");
+            }
+            return ResponseEntity.ok("Avatar uploaded successfully");
+        }
+
+        // SCENARIO 2 — Correct endsWith() extension check + Content-Type check, no magic byte validation
+        // Defense:  filename must end in .jpg or .jpeg, Content-Type must be image/jpeg
+        // Missing:  magic byte check, re-encoding
+        // Bypass:   send a real .jpg filename and Content-Type: image/jpeg but with non-JPEG
+        //           bytes inside. Both client-controlled checks pass but the server never
+        //           inspects the actual file content. Any bytes get stored.
+        if (vulnConfig.getFileUploadExtEndsWith().isEnabled()) {
+            String originalName = file.getOriginalFilename() == null ? "" : file.getOriginalFilename().toLowerCase();
+            if (!originalName.endsWith(".jpg") && !originalName.endsWith(".jpeg")) {
+                return ResponseEntity.badRequest().body("Only JPG files are allowed");
+            }
+            // Content-Type check still active — only the missing magic byte check is the weak point
+            String contentType = file.getContentType() == null ? "" : file.getContentType();
+            if (!contentType.equals("image/jpeg")) {
+                return ResponseEntity.badRequest().body("Only JPG files are allowed");
+            }
+            byte[] bytes = file.getBytes();
+            user.setAvatar(bytes);
+            user.setAvatarContentType("image/jpeg");
+            userRepository.save(user);
+            // Flag if bytes don't start with JPEG magic bytes FF D8 FF — non-JPEG content got through
+            if (bytes.length < 3 || (bytes[0] & 0xFF) != 0xFF || (bytes[1] & 0xFF) != 0xD8 || (bytes[2] & 0xFF) != 0xFF) {
+                return ResponseEntity.ok("Avatar uploaded successfully\nwes{file_upload_endswith_bypass}");
+            }
+            return ResponseEntity.ok("Avatar uploaded successfully");
+        }
+
+        // SCENARIO 3 — endsWith() extension check + Content-Type header check
+        // Defense:  filename must end in .jpg/.jpeg AND Content-Type must be image/jpeg
+        // Missing:  magic byte check, re-encoding
+        // Bypass:   intercept in Burp, rename file to shell.jpg, and set the multipart
+        //           part Content-Type to image/jpeg. Both are client-controlled — the
+        //           server still never inspects the actual bytes inside the file.
+        if (vulnConfig.getFileUploadMimeOnly().isEnabled()) {
+            String originalName = file.getOriginalFilename() == null ? "" : file.getOriginalFilename().toLowerCase();
+            if (!originalName.endsWith(".jpg") && !originalName.endsWith(".jpeg")) {
+                return ResponseEntity.badRequest().body("Only JPG files are allowed");
+            }
+            String contentType = file.getContentType() == null ? "" : file.getContentType();
+            if (!contentType.equals("image/jpeg")) {
+                return ResponseEntity.badRequest().body("Only JPG files are allowed");
+            }
+            byte[] bytes = file.getBytes();
+            // Magic byte check still active — only trusting Content-Type without ImageIO is the weak point
+            if (bytes.length < 3 || (bytes[0] & 0xFF) != 0xFF || (bytes[1] & 0xFF) != 0xD8 || (bytes[2] & 0xFF) != 0xFF) {
+                return ResponseEntity.badRequest().body("Only JPG files are allowed");
+            }
+            user.setAvatar(bytes);
+            user.setAvatarContentType("image/jpeg");
+            userRepository.save(user);
+            // Flag if ImageIO rejects it — magic bytes passed but it's not a valid JPEG structure
+            BufferedImage check = ImageIO.read(new java.io.ByteArrayInputStream(bytes));
+            if (check == null) {
+                return ResponseEntity.ok("Avatar uploaded successfully\nwes{file_upload_mime_bypass}");
+            }
+            return ResponseEntity.ok("Avatar uploaded successfully");
+        }
+
+        // SCENARIO 4 — endsWith() + Content-Type + ImageIO validation, no CDR
+        // Defense:  filename, Content-Type, AND ImageIO.read() must all pass
+        // Missing:  Content Disarm and Reconstruct (CDR) — the canvas re-encode step
+        // Bypass:   craft a polyglot JPEG — a valid image that also carries a payload
+        //           in EXIF metadata, JPEG comments, or bytes appended after the EOI marker.
+        //           ImageIO.read() accepts it as a real image, but without re-encoding
+        //           to a blank canvas the raw payload bytes survive into storage.
+        //           Tools: exiftool -comment='<payload>' real.jpg
+        if (vulnConfig.getFileUploadCdrBypass().isEnabled()) {
+            String originalName = file.getOriginalFilename() == null ? "" : file.getOriginalFilename().toLowerCase();
+            if (!originalName.endsWith(".jpg") && !originalName.endsWith(".jpeg")) {
+                return ResponseEntity.badRequest().body("Only JPG files are allowed");
+            }
+            String contentType = file.getContentType() == null ? "" : file.getContentType();
+            if (!contentType.equals("image/jpeg")) {
+                return ResponseEntity.badRequest().body("Only JPG files are allowed");
+            }
+            BufferedImage original = ImageIO.read(file.getInputStream());
+            if (original == null) {
+                return ResponseEntity.badRequest().body("Could not read image");
+            }
+            // No canvas re-encode — raw bytes stored, embedded payload survives.
+            byte[] rawBytes = file.getBytes();
+            user.setAvatar(rawBytes);
+            user.setAvatarContentType("image/jpeg");
+            userRepository.save(user);
+            // Flag if there are bytes after the JPEG EOI marker FF D9 — polyglot payload survived
+            boolean payloadFound = false;
+            for (int i = 0; i < rawBytes.length - 1; i++) {
+                if ((rawBytes[i] & 0xFF) == 0xFF && (rawBytes[i + 1] & 0xFF) == 0xD9) {
+                    if (i + 2 < rawBytes.length) {
+                        payloadFound = true;
+                    }
+                    break;
+                }
+            }
+            if (payloadFound) {
+                return ResponseEntity.ok("Avatar uploaded successfully\nwes{file_upload_polyglot_cdr_bypass}");
+            }
+            return ResponseEntity.ok("Avatar uploaded successfully");
+        }
+
+    
+        // SECURE — All four layers active (default)
+        // 1. endsWith() extension check
+        // 2. Content-Type header check
+        // 3. ImageIO.read() — file must parse as a real image
+        // 4. CDR — redraw to blank canvas, stripping all metadata and embedded payloads
         String originalName = file.getOriginalFilename() == null ? "" : file.getOriginalFilename().toLowerCase();
         if (!originalName.endsWith(".jpg") && !originalName.endsWith(".jpeg")) {
             return ResponseEntity.badRequest().body("Only JPG files are allowed");
@@ -172,41 +307,24 @@ public class AuthController {
         if (!contentType.equals("image/jpeg")) {
             return ResponseEntity.badRequest().body("Only JPG files are allowed");
         }
-
         BufferedImage original = ImageIO.read(file.getInputStream());
         if (original == null) {
             return ResponseEntity.badRequest().body("Could not read image");
         }
-
         BufferedImage canvas = new BufferedImage(96, 96, BufferedImage.TYPE_INT_RGB);
         Graphics2D g = canvas.createGraphics();
         g.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BILINEAR);
         g.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
         g.drawImage(original, 0, 0, 96, 96, null);
         g.dispose();
-
         ByteArrayOutputStream out = new ByteArrayOutputStream();
         ImageIO.write(canvas, "jpg", out);
-
-        Long userId = jwtService.extractUserId(authHeader.substring(7));
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("User not found"));
         user.setAvatar(out.toByteArray());
+        user.setAvatarContentType("image/jpeg");
         userRepository.save(user);
-
         return ResponseEntity.ok("Avatar uploaded successfully");
     }
-
-    @Operation(summary = "Get a user's avatar by user ID")
-    @GetMapping("/profile/avatar/{userId}")
-    public ResponseEntity<byte[]> getAvatar(@PathVariable Long userId) {
-        return userRepository.findById(userId)
-                .filter(u -> u.getAvatar() != null)
-                .map(u -> ResponseEntity.ok()
-                        .contentType(MediaType.IMAGE_JPEG)
-                        .body(u.getAvatar()))
-                .orElse(ResponseEntity.notFound().build());
-    }
+        
 
     @Operation(summary = "Update the authenticated user's password")
     @PatchMapping("/profile/password")

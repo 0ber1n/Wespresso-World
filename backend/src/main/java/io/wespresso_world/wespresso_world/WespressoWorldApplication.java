@@ -5,6 +5,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.beans.factory.annotation.Value;
 
 import io.wespresso_world.wespresso_world.drinks.Drinks;
 import io.wespresso_world.wespresso_world.drinks.DrinksRepository;
@@ -21,7 +22,8 @@ import io.wespresso_world.wespresso_world.cart.CartItemRepository;
 @SpringBootApplication
 public class WespressoWorldApplication {
 
-
+	@Value("${ADMIN_PASSWORD:admin123}")
+	private String adminPassword;
 
 	public static void main(String[] args) {
 		SpringApplication.run(WespressoWorldApplication.class, args);
@@ -54,7 +56,7 @@ public class WespressoWorldApplication {
 					User admin = new User();
 					admin.setUsername("admin");
 					admin.setEmail("admin@admin.com");
-					admin.setPassword(passwordEncoder.encode("admin123"));
+					admin.setPassword(passwordEncoder.encode(adminPassword));
 					admin.setRole(User.Role.admin);
 					userRepository.save(admin);
 				}
@@ -64,7 +66,7 @@ public class WespressoWorldApplication {
 					if (userRepository.findByUsername("steve").isEmpty()) {
 						User steve = new User();
 						steve.setUsername("steve");
-						steve.setPassword(passwordEncoder.encode("admin123"));
+						steve.setPassword(passwordEncoder.encode(adminPassword));
 						steve.setEmail("wes{$ql1_1nj3ct10n_w1ns}");
 						steve.setRole(User.Role.user);
 						userRepository.save(steve);

@@ -63,11 +63,11 @@ export default function Profile() {
     if (!avatarFile) return;
     setAvatarLoading(true); setAvatarMsg(null); setAvatarError(null);
     try {
-      await uploadAvatar(avatarFile);
+      const res = await uploadAvatar(avatarFile);
       setAvatarSrc(`${getAvatarUrl(user.id)}?t=${Date.now()}`);
       setAvatarLoadFailed(false); setAvatarPreview(null); setAvatarFile(null);
       if (fileInputRef.current) fileInputRef.current.value = '';
-      setAvatarMsg('Avatar updated.');
+      setAvatarMsg(res.data || 'Avatar updated.');
     } catch (err) {
       setAvatarError(err.response?.data || 'Upload failed.');
     } finally {
