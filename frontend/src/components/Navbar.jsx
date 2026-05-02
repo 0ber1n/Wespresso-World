@@ -1,12 +1,16 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { logout, getAvatarUrl } from '../services/api';
 
 function Navbar() {
-  const { user, logout: authLogout } = useAuth();
+  const { user, logout: authLogout, avatarVersion } = useAuth();
   const navigate = useNavigate();
   const [avatarError, setAvatarError] = useState(false);
+
+  useEffect(() => {
+    setAvatarError(false);
+  }, [avatarVersion]);
 
   const handleLogout = () => {
     logout();
@@ -37,7 +41,8 @@ function Navbar() {
             <div className="flex items-center gap-2.5 px-3 py-1.5 mr-1">
               {!avatarError ? (
                 <img
-                  src={getAvatarUrl(user.id)}
+                  key={avatarVersion}
+                  src={`${getAvatarUrl(user.id)}?v=${avatarVersion}`}
                   onError={() => setAvatarError(true)}
                   alt={user.username}
                   className="w-7 h-7 rounded-full object-cover ring-1 ring-forest-700"

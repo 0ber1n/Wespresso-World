@@ -6,6 +6,7 @@ const AuthContext = createContext(null);
 export function AuthProvider({ children }) {
     const [user, setUser] = useState(null);
     const [loading, setLoading] = useState(true);
+    const [avatarVersion, setAvatarVersion] = useState(0)
 
     useEffect(() => {
         const loadUser = async () => {
@@ -35,8 +36,10 @@ export function AuthProvider({ children }) {
         setUser(null);
     }; 
 
+    const refreshAvatar = () => setAvatarVersion(v => v +1);
+
     return (
-        <AuthContext.Provider value={{ user, loading,login, logout }}>
+        <AuthContext.Provider value={{ user, loading, login, logout, avatarVersion, refreshAvatar}}>
             {!loading && children}
         </AuthContext.Provider>
     );
