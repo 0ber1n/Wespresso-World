@@ -51,6 +51,7 @@ public class SecurityConfig {
                 .requestMatchers("/beans/**").permitAll()
                 .requestMatchers(HttpMethod.POST, "/cart/**").authenticated()
                 .requestMatchers("/order/**").authenticated()
+                .requestMatchers("/error").permitAll()
                 .anyRequest().authenticated()
             )
             .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);

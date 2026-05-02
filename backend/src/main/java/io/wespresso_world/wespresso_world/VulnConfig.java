@@ -15,7 +15,7 @@ public class VulnConfig {
     private StoredXss storedXss = new StoredXss();
     private FileUploadExtOnly fileUploadExtOnly = new FileUploadExtOnly();
     private FileUploadExtEndsWith fileUploadExtEndsWith = new FileUploadExtEndsWith();
-    private FileUploadMimeOnly fileUploadMimeOnly = new FileUploadMimeOnly();
+    private fileUploadMagicByteOnly fileUploadMagicByteOnly = new fileUploadMagicByteOnly();
     private FileUploadCdrBypass fileUploadCdrBypass = new FileUploadCdrBypass();
     
     public static class JwtNone {
@@ -60,7 +60,7 @@ public class VulnConfig {
         public void setEnabled(boolean enabled) { this.enabled = enabled; }
     }
 
-    public static class FileUploadMimeOnly {
+    public static class fileUploadMagicByteOnly {
         private boolean enabled = false;
         public boolean isEnabled() { return enabled; }
         public void setEnabled(boolean enabled) { this.enabled = enabled; }
@@ -75,7 +75,7 @@ public class VulnConfig {
     public StoredXss getStoredXss() { return storedXss; }
     public FileUploadExtOnly getFileUploadExtOnly() { return fileUploadExtOnly; }
     public FileUploadExtEndsWith getFileUploadExtEndsWith() { return fileUploadExtEndsWith; }
-    public FileUploadMimeOnly getFileUploadMimeOnly() { return fileUploadMimeOnly; }
+    public fileUploadMagicByteOnly getFileUploadMagicByteOnly() { return fileUploadMagicByteOnly; }
     public FileUploadCdrBypass getFileUploadCdrBypass() { return fileUploadCdrBypass; }
     public JwtNone getJwtNone() { return jwtNone; }
     public SqliLogin getSqliLogin() { return sqliLogin; }
