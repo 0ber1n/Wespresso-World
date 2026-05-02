@@ -25,7 +25,7 @@ function Card({ label, children }) {
 }
 
 export default function Profile() {
-  const { user } = useAuth();
+  const { user, refreshAvatar } = useAuth();
 
   const [avatarSrc, setAvatarSrc] = useState(getAvatarUrl(user.id));
   const [avatarPreview, setAvatarPreview] = useState(null);
@@ -64,12 +64,17 @@ export default function Profile() {
     setAvatarLoading(true); setAvatarMsg(null); setAvatarError(null);
     try {
       const res = await uploadAvatar(avatarFile);
+      refreshAvatar();
       setAvatarSrc(`${getAvatarUrl(user.id)}?t=${Date.now()}`);
       setAvatarLoadFailed(false); setAvatarPreview(null); setAvatarFile(null);
       if (fileInputRef.current) fileInputRef.current.value = '';
       setAvatarMsg(res.data || 'Avatar updated.');
     } catch (err) {
-      setAvatarError(err.response?.data || 'Upload failed.');
+      setAvatarError(
+      typeof err.response?.data === 'string' 
+        ? err.response.data 
+        : 'Upload failed.'
+    );
     } finally {
       setAvatarLoading(false);
     }

@@ -60,9 +60,7 @@ export const updatePassword = (data) => api.patch('/auth/profile/password', data
 export const uploadAvatar = (file) => {
   const formData = new FormData();
   formData.append('file', file);
-  return api.post('/auth/profile/avatar', formData, {
-    headers: { 'Content-Type': 'multipart/form-data' },
-  });
+  return api.post('/auth/profile/avatar', formData, {headers: { 'Content-Type': undefined }});
 };
 export const getAvatarUrl = (userId) => `/api/v1/auth/profile/avatar/${userId}`;
 
