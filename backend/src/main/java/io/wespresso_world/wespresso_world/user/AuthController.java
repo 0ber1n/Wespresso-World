@@ -14,6 +14,7 @@ import io.wespresso_world.wespresso_world.VulnConfig;
 import javax.imageio.ImageIO;
 import java.awt.*;
 import java.awt.image.BufferedImage;
+import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.util.Map;
 import java.util.List;
@@ -220,13 +221,14 @@ public class AuthController {
             return ResponseEntity.ok("Avatar uploaded successfully");
         }
 
-        // SCENARIO 3 — endsWith() extension check + Content-Type header check
-        // Defense:  filename must end in .jpg/.jpeg AND Content-Type must be image/jpeg
-        // Missing:  magic byte check, re-encoding
-        // Bypass:   intercept in Burp, rename file to shell.jpg, and set the multipart
-        //           part Content-Type to image/jpeg. Both are client-controlled — the
-        //           server still never inspects the actual bytes inside the file.
-        if (vulnConfig.getFileUploadMimeOnly().isEnabled()) {
+        // SCENARIO 3 — endsWith() extension check + Content-Type header check + magic byte check
+        // Defense:  filename must end in .jpg/.jpeg, Content-Type must be image/jpeg,
+        //           and first three bytes must be FF D8 FF (JPEG magic bytes)
+        // Missing:  full structural JPEG validation via ImageIO
+        // Bypass:   craft a file that starts with FF D8 FF but is not a valid JPEG structure.
+        //           A polyglot file with JPEG magic bytes prepended passes all three checks
+        //           but ImageIO rejects the malformed structure.
+        if (vulnConfig.getFileUploadMagicByteOnly().isEnabled()) {
             String originalName = file.getOriginalFilename() == null ? "" : file.getOriginalFilename().toLowerCase();
             if (!originalName.endsWith(".jpg") && !originalName.endsWith(".jpeg")) {
                 return ResponseEntity.badRequest().body("Only JPG files are allowed");
@@ -243,10 +245,26 @@ public class AuthController {
             user.setAvatar(bytes);
             user.setAvatarContentType("image/jpeg");
             userRepository.save(user);
+            // Check for appended payload after EOI marker — polyglot technique
+            int eoiIndex = -1;
+            for (int i = 0; i < bytes.length - 1; i++) {
+                if ((bytes[i] & 0xFF) == 0xFF && (bytes[i + 1] & 0xFF) == 0xD9) {
+                    eoiIndex = i;
+                }
+            }
+            if (eoiIndex != -1 && eoiIndex + 2 < bytes.length) {
+                return ResponseEntity.ok("Avatar uploaded successfully!\n\nFile upload vulnerability? Yes. This specific attack? Not quite.");
+            }
+
             // Flag if ImageIO rejects it — magic bytes passed but it's not a valid JPEG structure
-            BufferedImage check = ImageIO.read(new java.io.ByteArrayInputStream(bytes));
+            BufferedImage check = null;
+            try {
+                check = ImageIO.read(new ByteArrayInputStream(bytes));
+            } catch (Exception e) {
+                // malformed image — treat same as null
+            }
             if (check == null) {
-                return ResponseEntity.ok("Avatar uploaded successfully\nwes{file_upload_mime_bypass}");
+                return ResponseEntity.ok("Avatar uploaded successfully\nwes{file_upload_magic_byte_bypass}");
             }
             return ResponseEntity.ok("Avatar uploaded successfully");
         }
@@ -279,13 +297,15 @@ public class AuthController {
             userRepository.save(user);
             // Flag if there are bytes after the JPEG EOI marker FF D9 — polyglot payload survived
             boolean payloadFound = false;
+            int eoiIndex = -1;
             for (int i = 0; i < rawBytes.length - 1; i++) {
                 if ((rawBytes[i] & 0xFF) == 0xFF && (rawBytes[i + 1] & 0xFF) == 0xD9) {
-                    if (i + 2 < rawBytes.length) {
-                        payloadFound = true;
-                    }
-                    break;
+                    eoiIndex = i;
                 }
+            }
+            System.out.println("Last EOI at index: " + eoiIndex + " file length: " + rawBytes.length);
+            if (eoiIndex != -1 && eoiIndex + 2 < rawBytes.length) {
+                payloadFound = true;
             }
             if (payloadFound) {
                 return ResponseEntity.ok("Avatar uploaded successfully\nwes{file_upload_polyglot_cdr_bypass}");
@@ -324,7 +344,17 @@ public class AuthController {
         userRepository.save(user);
         return ResponseEntity.ok("Avatar uploaded successfully");
     }
-        
+    
+    @Operation(summary = "Get a user's avatar by user ID")
+    @GetMapping("/profile/avatar/{userId}")
+    public ResponseEntity<byte[]> getAvatar(@PathVariable Long userId) {
+        return userRepository.findById(userId)
+                .filter(u -> u.getAvatar() != null)
+                .map(u -> ResponseEntity.ok()
+                        .contentType(MediaType.IMAGE_JPEG)
+                        .body(u.getAvatar()))
+                .orElse(ResponseEntity.notFound().build());
+    }
 
     @Operation(summary = "Update the authenticated user's password")
     @PatchMapping("/profile/password")
