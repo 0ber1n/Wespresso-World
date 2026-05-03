@@ -17,7 +17,8 @@ public class VulnConfig {
     private FileUploadExtEndsWith fileUploadExtEndsWith = new FileUploadExtEndsWith();
     private fileUploadMagicByteOnly fileUploadMagicByteOnly = new fileUploadMagicByteOnly();
     private FileUploadCdrBypass fileUploadCdrBypass = new FileUploadCdrBypass();
-    
+    private PasswordIdor passwordIdor = new PasswordIdor();
+
     public static class JwtNone {
         private boolean enabled = false;
         public boolean isEnabled() { return enabled; }
@@ -72,6 +73,13 @@ public class VulnConfig {
         public void setEnabled(boolean enabled) { this.enabled = enabled; }
     }
 
+    public static class PasswordIdor {
+        private boolean enabled = false;
+        public boolean isEnabled() { return enabled; }
+        public void setEnabled(boolean enabled) { this.enabled = enabled; }
+    }
+
+
     public StoredXss getStoredXss() { return storedXss; }
     public FileUploadExtOnly getFileUploadExtOnly() { return fileUploadExtOnly; }
     public FileUploadExtEndsWith getFileUploadExtEndsWith() { return fileUploadExtEndsWith; }
@@ -81,7 +89,7 @@ public class VulnConfig {
     public SqliLogin getSqliLogin() { return sqliLogin; }
     public RateLimitBypass getRateLimitBypass() { return rateLimitBypass; }
     public CartIdor getCartIdor() { return cartIdor; }
-    
+    public PasswordIdor getPasswordIdor() { return passwordIdor; }
 
     
 }
