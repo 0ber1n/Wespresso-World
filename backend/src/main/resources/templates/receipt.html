@@ -23,7 +23,7 @@
             <span th:text="${order.id}">123</span></p>
 
         <p><span class="label">Customer:</span>
-            <span th:text="${order.username}">username</span></p>
+            <span th:text="${order.customerName}">username</span></p>
 
         <p><span class="label">Shipping To:</span>
             <span th:text="${order.shippingAddress}">123 Main St</span></p>
@@ -31,7 +31,7 @@
         <table class="items">
             <tr><th>Item</th><th>Qty</th><th>Price</th></tr>
             <tr th:each="item : ${order.items}">
-                <td th:text="${item.drinkName}">Espresso</td>
+                <td th:text="${item.itemName}">Espresso</td>
                 <td th:text="${item.quantity}">1</td>
                 <td th:text="${item.price}">2.50</td>
             </tr>

@@ -10,6 +10,11 @@ import org.thymeleaf.TemplateEngine;
 import org.thymeleaf.context.Context;
 import org.thymeleaf.templatemode.TemplateMode;
 import org.thymeleaf.templateresolver.StringTemplateResolver;
+
+import freemarker.template.Configuration;
+import freemarker.template.Template;
+import java.io.StringReader;
+import java.io.StringWriter;
 import io.wespresso_world.wespresso_world.VulnConfig;
 
 import io.swagger.v3.oas.annotations.Operation;
@@ -33,9 +38,11 @@ public class OrderController {
     @Autowired
     private TemplateEngine templateEngine;
 
-    // [SSTI] Inject VulnConfig to gate the vulnerable endpoint
     @Autowired
     private VulnConfig vulnConfig;
+
+    @Autowired
+private Configuration freeMarkerConfiguration;
 
     @Operation(summary = "Checkout: convert cart to an order", description = "Creates an order from the specified cart and clears the cart")
     @PostMapping("/checkout/{cartId}")
@@ -114,39 +121,59 @@ public class OrderController {
             return ResponseEntity.ok().contentType(MediaType.TEXT_HTML).body(html);
         }
 
-        //  VULNERABLE — orderNote from the database is concatenated into the template string
-        // If the student saved a Thymeleaf expression as their order note at checkout,
-        // it gets evaluated here when the receipt is rendered
-        StringTemplateResolver stringResolver = new StringTemplateResolver();
-        stringResolver.setTemplateMode(TemplateMode.HTML);
+        // VULNERABLE — orderNote concatenated into FreeMarker template string
+        // FreeMarker evaluates ${...} expressions — user input becomes executable
+        try {
+            String note = order.getOrderNote() == null ? "" : order.getOrderNote();
 
-        TemplateEngine stringEngine = new TemplateEngine();
-        stringEngine.setTemplateResolver(stringResolver);
+            // User input is embedded directly into the template string
+            // If note contains ${7*7} FreeMarker evaluates it to 49
+            // If note contains ${"freemarker.template.utility.Execute"?new()("cat /flag.txt")}
+            // FreeMarker executes the command and returns the output
+            String templateString = "<html><body>"
+                + "<div class='note'>" + note + "</div>"
+                + "</body></html>";
 
-        Context context = new Context();
-        context.setVariable("order", order);
+            Template template = new Template("receipt-beta",
+                new StringReader(templateString),
+                freeMarkerConfiguration);
 
-        String note = order.getOrderNote() == null ? "" : order.getOrderNote();
+            StringWriter writer = new StringWriter();
+            java.util.Map<String, Object> model = new java.util.HashMap<>();
+            model.put("order", order);
+            template.process(model, writer);
 
-        String templateString = "<html xmlns:th='http://www.thymeleaf.org'>"
-            + "<body>"
-            + "<div th:fragment='msg'>" + note + "</div>"
-            + "</body></html>";
+            String html = writer.toString();
 
-        String html = stringEngine.process(templateString, context);
-
-        // Detect Level 1 — Process object in output means RCE was achieved
-        if (html.contains("Process[")) {
+            // Detect Level 1 — any expression was evaluated
+            // FreeMarker replaces ${...} so if output differs from input, execution happened
+            if (!html.contains(note) || html.contains("Process[")) {
+                String flagBanner = "<div style='background:#d4edda;border:2px solid #28a745;padding:16px;"
+                    + "margin:20px;border-radius:8px;font-family:monospace;font-size:14px;'>"
+                    + "<strong>SSTI Level 1 Flag:</strong> flag{ssti_l1_rce_proven}\n"
+                    + "<strong>What do you think flag.txt says?"
+                    + "</div>";
+                return ResponseEntity.ok()
+                    .contentType(MediaType.TEXT_HTML)
+                    .body(flagBanner + html + "\n<!-- flag{ssti_l1_rce_proven} -->");
+            }
+            if (html.contains("flag{")) {
+            String flagBanner = "<div style='background:#d4edda;border:2px solid #28a745;padding:16px;"
+                + "margin:20px;border-radius:8px;font-family:monospace;font-size:14px;'>"
+                + "<strong>Level 2 Flag:</strong> " + html.replaceAll(".*flag\\{([^}]+)\\}.*", "flag{$1}")
+                + "</div>";
             return ResponseEntity.ok()
                 .contentType(MediaType.TEXT_HTML)
-                .body(html + "\n<!-- flag{ssti_l1_rce_proven} -->");
+                .body(flagBanner + html);
         }
+            return ResponseEntity.ok().contentType(MediaType.TEXT_HTML).body(html);
 
-        return ResponseEntity.ok().contentType(MediaType.TEXT_HTML).body(html);
-    }
+        } catch (Exception e) {
+            return ResponseEntity.status(500).body("Template error: " + e.getMessage());
+        }
 }
 
-class CheckoutRequest {
+static class CheckoutRequest {
     @Schema(description = "Full shipping address for the order")
     private String shippingAddress;
 
@@ -158,4 +185,6 @@ class CheckoutRequest {
 
     public String getOrderNote() { return orderNote; }
     public void setOrderNote(String orderNote) { this.orderNote = orderNote; }
+    }
+
 }

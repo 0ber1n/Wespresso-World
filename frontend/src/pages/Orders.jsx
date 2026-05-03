@@ -17,6 +17,18 @@ export default function Orders() {
       .finally(() => setLoading(false));
   }, []);
 
+  const openReceipt = async (orderId, beta = false) => {
+    const token = sessionStorage.getItem('token');
+    const url = `/api/v1/order/${orderId}/receipt${beta ? '-beta' : ''}`;
+    const res = await fetch(url, {
+      headers: { Authorization: `Bearer ${token}` }
+    });
+    const html = await res.text();
+    const win = window.open('', '_blank');
+    win.document.write(html);
+    win.document.close();
+  };
+
   if (loading) return (
     <div className="flex justify-center items-center h-screen bg-cream-100">
       <p className="text-brown-400 text-xs tracking-widest uppercase">Loading orders…</p>
@@ -93,23 +105,20 @@ export default function Orders() {
                     </div>
 
                     <div className="flex gap-2 mt-4">
-  
-                        href={`/api/v1/order/${order.id}/receipt`}
-                        target="_blank"
-                        rel="noreferrer"
+                      <button
+                        onClick={() => openReceipt(order.id)}
                         className="text-xs text-forest-700 border border-forest-300 bg-forest-50 hover:bg-forest-100 px-4 py-2 rounded-xl transition-colors"
-                      <a>
+                      >
                         View Receipt
-                      </a>
-                      
-                        href={`/api/v1/order/${order.id}/receipt-beta`}
-                        target="_blank"
-                        rel="noreferrer"
+                      </button>
+                      <button
+                        onClick={() => openReceipt(order.id, true)}
                         className="text-xs text-brown-400 border border-cream-300 bg-cream-100 hover:bg-cream-200 px-4 py-2 rounded-xl transition-colors"
-                      <a>
+                      >
                         Receipt v2 <span className="text-brown-300">[beta]</span>
-                      </a>
+                      </button>
                     </div>
+                    
                   </div>
                 )}
               </div>
