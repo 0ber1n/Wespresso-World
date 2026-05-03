@@ -70,6 +70,26 @@ export default function OrderConfirmation() {
           <p className="text-brown-700 text-sm">{order.shippingAddress}</p>
         </div>
 
+        {/* Receipt links */}
+        <div className="flex gap-2 mb-3">
+          
+            href={`/api/v1/order/${order.id}/receipt`}
+            target="_blank"
+            rel="noreferrer"
+            className="flex-1 text-center text-sm text-forest-700 border border-forest-300 bg-forest-50 hover:bg-forest-100 py-3 rounded-xl transition-colors"
+          <a>
+            View Receipt
+          </a>
+          
+            href={`/api/v1/order/${order.id}/receipt-beta`}
+            target="_blank"
+            rel="noreferrer"
+            className="flex-1 text-center text-sm text-brown-400 border border-cream-300 bg-cream-100 hover:bg-cream-200 py-3 rounded-xl transition-colors"
+          <a>
+            Receipt v2 <span className="text-brown-300">[beta]</span>
+          </a>
+        </div>
+
         <button
           onClick={() => navigate('/')}
           className="w-full bg-forest-800 hover:bg-forest-700 text-cream-50 py-3 rounded-xl text-sm font-medium transition-colors shadow-warm"

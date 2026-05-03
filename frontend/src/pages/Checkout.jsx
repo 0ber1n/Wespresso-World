@@ -13,7 +13,7 @@ export default function Checkout() {
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState(null);
-  const [form, setForm] = useState({ fullName: '', street: '', city: '', zip: '', country: '', cardNumber: '', expiry: '', cvv: '' });
+  const [form, setForm] = useState({ fullName: '', street: '', city: '', zip: '', country: '', cardNumber: '', expiry: '', cvv: '', orderNote: '' });
 
   useEffect(() => {
     getCart(cartId)
@@ -30,7 +30,7 @@ export default function Checkout() {
     setError(null);
     try {
       const shippingAddress = `${form.street}, ${form.city}, ${form.zip}, ${form.country}`;
-      const res = await checkout(cartId, { shippingAddress });
+      const res = await checkout(cartId, { shippingAddress, orderNote: form.orderNote });
       navigate(`/order/${res.data.id}`);
     } catch {
       setError('Checkout failed. Please try again.');
@@ -100,6 +100,19 @@ export default function Checkout() {
             <div>
               <label className={labelCls}>Country</label>
               <input name="country" value={form.country} onChange={set} required placeholder="USA" className={inputCls} />
+            </div>
+            <div>
+              <label className={labelCls}>
+                Order Note <span className="text-brown-300 font-normal">(optional)</span>
+              </label>
+              <textarea
+                name="orderNote"
+                value={form.orderNote}
+                onChange={set}
+                placeholder="Gift message, delivery instructions..."
+                rows={3}
+                className={inputCls + ' resize-none'}
+              />
             </div>
 
             <p className="text-xs text-brown-400 uppercase tracking-widest pt-2 border-t border-cream-300">Payment</p>

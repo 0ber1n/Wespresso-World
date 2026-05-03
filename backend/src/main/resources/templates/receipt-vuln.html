@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8"/>
+    <title>Wespresso World — Order Receipt</title>
+    <style>
+        body { font-family: Arial, sans-serif; max-width: 600px; margin: 40px auto; color: #333; }
+        h1   { color: #6b3a2a; }
+        .receipt-box { border: 1px solid #ddd; padding: 20px; border-radius: 8px; }
+        .label { font-weight: bold; }
+        .message-box { background: #fff3cd; padding: 12px; border-radius: 4px; margin-top: 16px;
+                       border-left: 4px solid #ffc107; }
+        .items { width: 100%; border-collapse: collapse; margin: 16px 0; }
+        .items td, .items th { border-bottom: 1px solid #eee; padding: 8px; text-align: left; }
+        .vuln-note { font-size: 11px; color: #999; margin-top: 24px; }
+    </style>
+</head>
+<body>
+    <h1>☕ Wespresso World</h1>
+    <h2>Order Receipt <small style="color:#cc0000;">[beta]</small></h2>
+
+    <div class="receipt-box">
+
+        <p><span class="label">Order ID:</span>
+            <span th:text="${order.id}">123</span></p>
+
+        <p><span class="label">Customer:</span>
+            <span th:text="${order.username}">username</span></p>
+
+        <p><span class="label">Shipping To:</span>
+            <span th:text="${order.shippingAddress}">123 Main St</span></p>
+
+        <table class="items">
+            <tr><th>Item</th><th>Qty</th><th>Price</th></tr>
+            <tr th:each="item : ${order.items}">
+                <td th:text="${item.drinkName}">Espresso</td>
+                <td th:text="${item.quantity}">1</td>
+                <td th:text="${item.price}">2.50</td>
+            </tr>
+        </table>
+
+        <p><span class="label">Total:</span>
+            $<span th:text="${order.totalPrice}">0.00</span></p>
+
+        <div class="message-box" th:if="${customMessage != null}">
+            <span class="label">Personalized message:</span>
+            <!-- VULNERABLE: th:utext skips encoding AND the template string
+                 is built by concatenating user input — Thymeleaf parses and
+                 evaluates whatever expressions are embedded in it            -->
+            <p th:utext="${customMessage}">Your message here</p>
+        </div>
+
+        <p class="vuln-note">Receipt generator v0.2-beta — custom messages powered by dynamic templates</p>
+
+    </div>
+</body>
+</html>

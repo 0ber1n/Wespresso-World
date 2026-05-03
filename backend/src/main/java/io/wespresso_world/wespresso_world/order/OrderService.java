@@ -17,7 +17,7 @@ public class OrderService {
     @Autowired
     private CartRepository cartRepository;
 
-    public Order placeOrder(Long cartId, String shippingAddress, Long userId, String customerName) {
+    public Order placeOrder(Long cartId, String shippingAddress, String orderNote, Long userId, String customerName) {
         Cart cart = cartRepository.findById(cartId)
                 .orElseThrow(() -> new RuntimeException("Cart not found"));
 
@@ -29,6 +29,7 @@ public class OrderService {
         order.setUserId(userId);
         order.setCustomerName(customerName);
         order.setShippingAddress(shippingAddress);
+        order.setOrderNote(orderNote);
         order.setTotalPrice(cart.getTotalPrice());
 
         for (CartItem cartItem : cart.getItems()) {

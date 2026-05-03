@@ -27,6 +27,9 @@ public class Order {
     @Schema(description = "Shipping address")
     private String shippingAddress;
 
+    @Schema(description = "Optional order note or gift message")
+    private String orderNote;
+
     @Schema(description = "Order status")
     private String status;
 
