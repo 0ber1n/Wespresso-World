@@ -361,17 +361,42 @@ public class AuthController {
     public ResponseEntity<?> updatePassword(
             @RequestHeader("Authorization") String authHeader,
             @RequestBody Map<String, String> request) {
+
         String currentPassword = request.get("currentPassword");
         String newPassword = request.get("newPassword");
-        if (currentPassword == null || newPassword == null || newPassword.isBlank()) {
-            return ResponseEntity.badRequest().body("Current and new password are required");
+
+        if (newPassword == null || newPassword.isBlank()) {
+            return ResponseEntity.badRequest().body("New password is required");
         }
-        Long userId = jwtService.extractUserId(authHeader.substring(7));
+
+        Long userId;
+
+        if (vulnConfig.getPasswordIdor().isEnabled()) {
+            // VULN: trust the userId from the request body instead of the JWT
+            String requestedId = request.get("userId");
+            if (requestedId == null) {
+                return ResponseEntity.badRequest().body("userId is required");
+            }
+            userId = Long.parseLong(requestedId);
+            // No current password check — attacker doesn't know victim's password
+        } else {
+            // SECURE: always derive userId from the JWT
+            userId = jwtService.extractUserId(authHeader.substring(7));
+            if (currentPassword == null || currentPassword.isBlank()) {
+                return ResponseEntity.badRequest().body("Current and new password are required");
+            }
+            User user = userRepository.findById(userId)
+                    .orElseThrow(() -> new RuntimeException("User not found"));
+            if (!passwordEncoder.matches(currentPassword, user.getPassword())) {
+                return ResponseEntity.status(403).body("Current password is incorrect");
+            }
+            user.setPassword(passwordEncoder.encode(newPassword));
+            userRepository.save(user);
+            return ResponseEntity.ok("Password updated successfully");
+        }
+
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("User not found"));
-        if (!passwordEncoder.matches(currentPassword, user.getPassword())) {
-            return ResponseEntity.status(403).body("Current password is incorrect");
-        }
         user.setPassword(passwordEncoder.encode(newPassword));
         userRepository.save(user);
         return ResponseEntity.ok("Password updated successfully");

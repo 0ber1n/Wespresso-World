@@ -99,7 +99,7 @@ export default function Profile() {
     if (pwForm.newPassword !== pwForm.confirmPassword) { setPwError('New passwords do not match.'); return; }
     setPwLoading(true);
     try {
-      await updatePassword({ currentPassword: pwForm.currentPassword, newPassword: pwForm.newPassword });
+      await updatePassword({ userId: String(user.id), currentPassword: pwForm.currentPassword, newPassword: pwForm.newPassword });
       setPwMsg('Password updated.'); setPwForm({ currentPassword: '', newPassword: '', confirmPassword: '' });
     } catch (err) {
       setPwError(err.response?.data || 'Failed to update password.');
