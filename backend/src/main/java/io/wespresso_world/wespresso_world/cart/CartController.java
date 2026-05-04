@@ -14,11 +14,12 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import io.wespresso_world.wespresso_world.user.JwtService;
-
+import io.wespresso_world.wespresso_world.user.SecurityHelper;
 import io.wespresso_world.wespresso_world.VulnConfig;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+import io.wespresso_world.wespresso_world.user.SecurityHelper;
 
 
 @Tag(name = "Cart API", description = "Endpoints for managing shopping carts") // Adds OpenAPI tag for grouping endpoints in documentation
@@ -37,10 +38,9 @@ public class CartController {
 
     @Operation(summary = "Get or create the authenticated user's shopping cart", description = "Retrieves the shopping cart for the authenticated user, or creates a new one if it doesn't exist") // Adds OpenAPI operation summary and description for API documentation
     @GetMapping("/my-cart")
-    public Cart getMyCart(@RequestHeader("Authorization") String authHeader) {
-        String token = authHeader.substring(7);
-        String username = jwtService.extractUsername(token);
-        Long userId = jwtService.extractUserId(token);
+    public Cart getMyCart(@RequestHeader(value = "Authorization", required = false) String authHeader) {
+        String username = SecurityHelper.getUsername(authHeader, jwtService);
+        Long   userId   = SecurityHelper.getUserId(authHeader, jwtService);
         return cartService.getOrCreateCart(userId, username);
     }
     

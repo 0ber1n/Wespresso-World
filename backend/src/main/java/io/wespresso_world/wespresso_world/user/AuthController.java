@@ -3,6 +3,7 @@ package io.wespresso_world.wespresso_world.user;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -19,6 +20,10 @@ import java.io.ByteArrayOutputStream;
 import java.util.Map;
 import java.util.List;
 import org.springframework.jdbc.core.JdbcTemplate;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpSession;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 
 @Tag(name = "Auth API", description = "Endpoints for user authentication and registration")
 @RestController
@@ -65,7 +70,7 @@ public class AuthController {
 
     @Operation(summary = "Authenticate a user and generate JWT")
     @PostMapping("/login")
-    public ResponseEntity<?> login(@RequestBody Map<String, String> request) {
+    public ResponseEntity<?> login(@RequestBody Map<String, String> request, HttpServletRequest httpRequest) {
         String username = request.get("username");
         String password = request.get("password");
 
@@ -120,30 +125,62 @@ public class AuthController {
         }
 
         String token = jwtService.generateToken(user);
+        // [VULN] Session fixation — session is created before auth and never rotated.
+        // A student watching the Network tab will see the same JSESSIONID
+        // before and after login. Pre-setting it before submitting credentials
+        // means the attacker controls the session ID the victim lands in.
+        if (vulnConfig.getSessionFixation().isEnabled()) {
+            HttpSession session = httpRequest.getSession(true); // reuse pre-existing or create new
+            session.setAttribute("username", user.getUsername());
+            session.setAttribute("role", user.getRole().name());
+            session.setAttribute("userId", user.getId());
+        }
         return ResponseEntity.ok(Map.of("token", token));
     }
 
-    @Operation(summary = "Get the profile of the authenticated user")
+   @Operation(summary = "Get the profile of the authenticated user")
     @GetMapping("/profile")
-    public ResponseEntity<?> profile(@RequestHeader("Authorization") String authHeader) {
-        String token = authHeader.substring(7);
-        String username = jwtService.extractUsername(token);
-        Long userID = jwtService.extractUserId(token);
-        String role = jwtService.extractRole(token);
-        String email = jwtService.extractEmail(token);
+    public ResponseEntity<?> profile(@RequestHeader(value = "Authorization", required = false) String authHeader) {
+        String username = SecurityHelper.getUsername(authHeader, jwtService);
+        Long   userID   = SecurityHelper.getUserId(authHeader, jwtService);
+        String email    = SecurityHelper.getEmail(authHeader, jwtService);
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        String role = auth.getAuthorities().stream()
+            .findFirst()
+            .map(a -> a.getAuthority().replace("ROLE_", ""))
+            .orElse("user");
 
         return ResponseEntity.ok(Map.of(
-            "id", userID,
+            "id",       userID,
             "username", username,
-            "email", email,
-            "role", role
+            "email",    email,
+            "role",     role
         ));
+    }
+
+    // [VULN] Session fixation — logout does not invalidate the server-side session.
+    // The client loses its JWT, but the JSESSIONID remains valid on the server.
+    // A student should notice the cookie persists and still grants access post-logout.
+    @Operation(summary = "Log out the current user")
+    @PostMapping("/logout")
+    public ResponseEntity<?> logout(HttpServletRequest httpRequest) {
+        if (vulnConfig.getSessionFixation().isEnabled()) {
+            // Intentionally does nothing server-side — session lives on
+            return ResponseEntity.ok("Logged out");
+        }
+
+        // Secure path: actually destroy the session
+        HttpSession session = httpRequest.getSession(false);
+        if (session != null) {
+            session.invalidate();
+        }
+        return ResponseEntity.ok("Logged out");
     }
 
     @Operation(summary = "Update the authenticated user's email")
     @PatchMapping("/profile/email")
     public ResponseEntity<?> updateEmail(
-            @RequestHeader("Authorization") String authHeader,
+            @RequestHeader(value = "Authorization", required = false) String authHeader,
             @RequestBody Map<String, String> request) {
         String newEmail = request.get("email");
         if (newEmail == null || newEmail.isBlank()) {
@@ -152,7 +189,7 @@ public class AuthController {
         if (userRepository.findByEmail(newEmail).isPresent()) {
             return ResponseEntity.badRequest().body("Email already in use");
         }
-        Long userId = jwtService.extractUserId(authHeader.substring(7));
+        Long userId = SecurityHelper.getUserId(authHeader, jwtService);
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("User not found"));
         user.setEmail(newEmail);
@@ -163,10 +200,10 @@ public class AuthController {
     @Operation(summary = "Upload an avatar for the authenticated user")
     @PostMapping(value = "/profile/avatar", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<?> uploadAvatar(
-            @RequestHeader("Authorization") String authHeader,
+            @RequestHeader(value = "Authorization", required = false) String authHeader,
             @RequestParam("file") MultipartFile file) throws Exception {
 
-        Long userId = jwtService.extractUserId(authHeader.substring(7));
+        Long userId = SecurityHelper.getUserId(authHeader, jwtService);
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
@@ -359,7 +396,7 @@ public class AuthController {
     @Operation(summary = "Update the authenticated user's password")
     @PatchMapping("/profile/password")
     public ResponseEntity<?> updatePassword(
-            @RequestHeader("Authorization") String authHeader,
+            @RequestHeader(value = "Authorization", required = false) String authHeader,
             @RequestBody Map<String, String> request) {
 
         String currentPassword = request.get("currentPassword");
@@ -380,8 +417,8 @@ public class AuthController {
             userId = Long.parseLong(requestedId);
             // No current password check — attacker doesn't know victim's password
         } else {
-            // SECURE: always derive userId from the JWT
-            userId = jwtService.extractUserId(authHeader.substring(7));
+            // SECURE: always derive userId from the JWT or session
+            userId = SecurityHelper.getUserId(authHeader, jwtService);
             if (currentPassword == null || currentPassword.isBlank()) {
                 return ResponseEntity.badRequest().body("Current and new password are required");
             }

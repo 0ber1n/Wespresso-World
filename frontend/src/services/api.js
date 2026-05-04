@@ -71,7 +71,7 @@ export const getMyOrders = () => api.get('/order/my-orders');
 
 // Logout function to clear the token from session storage
 export const logout = () => {
+  api.post('/auth/logout').catch(() => {});
   sessionStorage.removeItem('token');
 };
-
 export default api;
