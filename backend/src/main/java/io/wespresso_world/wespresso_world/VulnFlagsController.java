@@ -16,6 +16,9 @@ public class VulnFlagsController {
 
     @GetMapping
     public Map<String, Boolean> getFlags() {
-        return Map.of("storedXss", vulnConfig.getStoredXss().isEnabled());
+        return Map.of(
+            "storedXss", vulnConfig.getStoredXss().isEnabled(),
+            "sessionFixation", vulnConfig.getSessionFixation().isEnabled()
+        );
     }
 }

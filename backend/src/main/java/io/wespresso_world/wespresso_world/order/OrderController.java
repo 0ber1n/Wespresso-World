@@ -21,6 +21,9 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import io.wespresso_world.wespresso_world.user.JwtService;
+import io.wespresso_world.wespresso_world.user.SecurityHelper;
+import io.wespresso_world.wespresso_world.user.SecurityHelper;
+import io.wespresso_world.wespresso_world.user.JwtService;
 
 import java.util.List;
 
@@ -49,10 +52,9 @@ private Configuration freeMarkerConfiguration;
     public Order checkout(
             @PathVariable Long cartId,
             @RequestBody CheckoutRequest request,
-            @RequestHeader("Authorization") String authHeader) {
-        String token = authHeader.substring(7);
-        Long userId = jwtService.extractUserId(token);
-        String username = jwtService.extractUsername(token);
+            @RequestHeader(value = "Authorization", required = false) String authHeader) {
+        Long   userId   = SecurityHelper.getUserId(authHeader, jwtService);
+        String username = SecurityHelper.getUsername(authHeader, jwtService);
         return orderService.placeOrder(cartId, request.getShippingAddress(), request.getOrderNote(), userId, username);
     }
 
@@ -65,9 +67,8 @@ private Configuration freeMarkerConfiguration;
 
     @Operation(summary = "Get all orders for the authenticated user")
     @GetMapping("/my-orders")
-    public List<Order> getMyOrders(@RequestHeader("Authorization") String authHeader) {
-        String token = authHeader.substring(7);
-        Long userId = jwtService.extractUserId(token);
+    public List<Order> getMyOrders(@RequestHeader(value = "Authorization", required = false) String authHeader) {
+        Long userId = SecurityHelper.getUserId(authHeader, jwtService);
         return orderService.getOrdersByUser(userId);
     }
 

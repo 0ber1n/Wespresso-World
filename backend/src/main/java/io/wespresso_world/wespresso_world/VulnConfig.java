@@ -21,6 +21,7 @@ public class VulnConfig {
     private FileUploadCdrBypass fileUploadCdrBypass = new FileUploadCdrBypass();
     private PasswordIdor passwordIdor = new PasswordIdor();
     private SstiThymeleaf sstiThymeleaf = new SstiThymeleaf();
+    private SessionFixation sessionFixation = new SessionFixation();
 
     public static class JwtNone {
         private boolean enabled = false;
@@ -88,6 +89,12 @@ public class VulnConfig {
         public void setEnabled(boolean enabled) { this.enabled = enabled; }
     }
 
+    public static class SessionFixation {
+        private boolean enabled = false;
+        public boolean isEnabled() { return enabled; }
+        public void setEnabled(boolean enabled) { this.enabled = enabled; }
+    }
+
 
     public StoredXss getStoredXss() { return storedXss; }
     public FileUploadExtOnly getFileUploadExtOnly() { return fileUploadExtOnly; }
@@ -100,6 +107,7 @@ public class VulnConfig {
     public CartIdor getCartIdor() { return cartIdor; }
     public PasswordIdor getPasswordIdor() { return passwordIdor; }
     public SstiThymeleaf getSstiThymeleaf() { return sstiThymeleaf; }
+    public SessionFixation getSessionFixation() { return sessionFixation; }
 
     
 }
