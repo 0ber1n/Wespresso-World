@@ -22,7 +22,7 @@ import io.wespresso_world.wespresso_world.cart.CartItemRepository;
 @SpringBootApplication
 public class WespressoWorldApplication {
 
-	@Value("${ADMIN_PASSWORD:admin123}")
+	@Value("${ADMIN_PASSWORD:admin1234}")
 	private String adminPassword;
 
 	public static void main(String[] args) {
