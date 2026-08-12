@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { getMenu, getBeans, addBeanToCart, addDrinkToCart, getReviews, submitReview, deleteReview} from '../services/api';
+import { getMenu, getBeans, addBeanToCart, addDrinkToCart, getReviews, submitReview, deleteReview, getVulnFlags } from '../services/api';
 import { useAuth } from '../context/AuthContext';
 import ErrorPage from '../components/ErrorPage';
 
@@ -12,6 +12,7 @@ function Menu() {
   const [toast, setToast] = useState(null);
   const [openBeanId, setOpenBeanId] = useState(null);
   const [reviewsCache, setReviewsCache] = useState({});
+  const [vulnFlags, setVulnFlags] = useState({});
   const { user } = useAuth();
   const navigate = useNavigate();
 
@@ -127,6 +128,7 @@ function Menu() {
         <ReviewModal
           bean={openBean}
           user={user}
+          vulnFlags={vulnFlags}
           onClose={() => setOpenBeanId(null)}
           onCacheUpdate={handleCacheUpdate}
         />
@@ -229,7 +231,7 @@ function BeanCard({ bean, cachedReviews, user, onAdd, onSignIn, onOpenReviews })
   );
 }
 
-function ReviewModal({ bean, user, onClose, onCacheUpdate }) {
+function ReviewModal({ bean, user, vulnFlags, onClose, onCacheUpdate }) {
   const [reviews, setReviews] = useState([]);
   const [loadingReviews, setLoadingReviews] = useState(true);
   const [rating, setRating] = useState(0);
@@ -385,16 +387,16 @@ function ReviewModal({ bean, user, onClose, onCacheUpdate }) {
                       )}
                     </div>
                   </div>
-                  <p className="text-sm text-brown-600" dangerouslySetInnerHTML={{ __html: review.comment }} />
+                  {vulnFlags.storedXss
+                    ? <p className="text-sm text-brown-600" dangerouslySetInnerHTML={{ __html: review.comment }} />
+                    : <p className="text-sm text-brown-600">{review.comment}</p>
+                  }
                 </div>
               ))}
             </div>
           )}
         </div>
-      </div>{vulnFlags.storedXss
-                    ? <p className="text-sm text-brown-600" dangerouslySetInnerHTML={{ __html: review.comment }} />
-                    : <p className="text-sm text-brown-600">{review.comment}</p>
-                  }
+      </div>
     </div>
   );
 }
