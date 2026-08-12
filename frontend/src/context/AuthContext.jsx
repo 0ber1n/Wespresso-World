@@ -1,5 +1,5 @@
 import { createContext, useContext, useState, useEffect } from "react";
-import { getProfile } from "../services/api";
+import { getProfile, getMyCart } from "../services/api";
 
 const AuthContext = createContext(null);
 
@@ -13,8 +13,9 @@ export function AuthProvider({ children }) {
             const token = sessionStorage.getItem("token");
             if (token) {
                 try {
-                    const response = await getProfile(token);
-                    setUser(response.data);
+                    const [profileRes, cartRes] = await Promise.all([getProfile(), getMyCart()]);
+                    setUser(profileRes.data);
+                    sessionStorage.setItem('cartId', cartRes.data.id);
                 } catch (error) {
                     console.error("Failed to load user profile", error);
                     sessionStorage.removeItem("token");
