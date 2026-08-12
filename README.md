@@ -1,3 +1,5 @@
+* I panicked released this repo before cleaning up the repo. Instructions below are accurate, just know there's random things in the repo that aren't needed right meow*
+
 # Wespresso World
 
 A vulnerable web application designed as a hands-on security training ground. Wespresso World simulates a real-world coffee storefront API with intentional vulnerabilities that can be toggled on or off — making it ideal for CTF challenges, security training, and practicing offensive and defensive techniques.
