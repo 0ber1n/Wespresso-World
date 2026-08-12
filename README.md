@@ -10,14 +10,19 @@ A vulnerable web application designed as a hands-on security training ground. We
 
 ## Quick Start
 
-1. Clone or download `docker-compose.yml` and `.env` from this repo
+1. Clone or download `docker-compose.yml` and `.env.example` from this repo
 
-2. Pull the latest image:
+2. Copy the example env file and configure it:
+```
+cp .env.example .env
+```
+
+3. Pull the latest image:
 ```
 docker pull ghcr.io/0ber1n/wespresso-world:latest
 ```
 
-3. Start the container:
+4. Start the container:
 ```
 docker compose up
 ```

@@ -10,7 +10,7 @@ frontend/node_modules/
 frontend/dist/
 *.db
 .env
-ctfd
+*.zip
 
 ### STS ###
 .apt_generated

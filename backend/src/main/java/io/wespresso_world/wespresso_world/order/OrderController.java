@@ -146,27 +146,29 @@ private Configuration freeMarkerConfiguration;
 
             String html = writer.toString();
 
-            // Detect Level 1 — any expression was evaluated
+            // Level 2 — RCE: player read /flag.txt via command execution
+            if (html.contains("flag{")) {
+                String flagBanner = "<div style='background:#d4edda;border:2px solid #28a745;padding:16px;"
+                    + "margin:20px;border-radius:8px;font-family:monospace;font-size:14px;'>"
+                    + "<strong>SSTI Level 2 Flag:</strong> " + html.replaceAll(".*flag\\{([^}]+)\\}.*", "flag{$1}")
+                    + "</div>";
+                return ResponseEntity.ok()
+                    .contentType(MediaType.TEXT_HTML)
+                    .body(flagBanner + html);
+            }
+
+            // Level 1 — SSTI triggered: any expression was evaluated
             // FreeMarker replaces ${...} so if output differs from input, execution happened
             if (!html.contains(note) || html.contains("Process[")) {
                 String flagBanner = "<div style='background:#d4edda;border:2px solid #28a745;padding:16px;"
                     + "margin:20px;border-radius:8px;font-family:monospace;font-size:14px;'>"
-                    + "<strong>SSTI Level 1 Flag:</strong> flag{ssti_l1_rce_proven}\n"
-                    + "<strong>What do you think flag.txt says?"
+                    + "<strong>SSTI Level 1 Flag:</strong> flag{ssti_l1_rce_proven}<br>"
+                    + "<strong>Hint:</strong> What do you think /flag.txt says?"
                     + "</div>";
                 return ResponseEntity.ok()
                     .contentType(MediaType.TEXT_HTML)
                     .body(flagBanner + html + "\n<!-- flag{ssti_l1_rce_proven} -->");
             }
-            if (html.contains("flag{")) {
-            String flagBanner = "<div style='background:#d4edda;border:2px solid #28a745;padding:16px;"
-                + "margin:20px;border-radius:8px;font-family:monospace;font-size:14px;'>"
-                + "<strong>Level 2 Flag:</strong> " + html.replaceAll(".*flag\\{([^}]+)\\}.*", "flag{$1}")
-                + "</div>";
-            return ResponseEntity.ok()
-                .contentType(MediaType.TEXT_HTML)
-                .body(flagBanner + html);
-        }
             return ResponseEntity.ok().contentType(MediaType.TEXT_HTML).body(html);
 
         } catch (Exception e) {
