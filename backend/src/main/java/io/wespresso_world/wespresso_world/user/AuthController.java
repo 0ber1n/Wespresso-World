@@ -103,6 +103,12 @@ public class AuthController {
                         return ResponseEntity.badRequest().body("Invalid username or password");
                     }
                     String token = jwtService.generateToken(user);
+                    if (vulnConfig.getSessionFixation().isEnabled()) {
+                        HttpSession session = httpRequest.getSession(true);
+                        session.setAttribute("username", user.getUsername());
+                        session.setAttribute("role", user.getRole().name());
+                        session.setAttribute("userId", user.getId());
+                    }
                     return ResponseEntity.ok(Map.of("token", token));
                 } else {
                     return ResponseEntity.badRequest().body("Invalid username or password");
