@@ -1,6 +1,6 @@
 import { useState, useRef } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { updateEmail, updatePassword, uploadAvatar, getAvatarUrl } from '../services/api';
+import { updateEmail, updatePassword, uploadAvatar, getAvatarUrl, redeemGiftCard } from '../services/api';
 
 const inputCls = 'w-full border border-cream-400 bg-cream-50 rounded-xl px-4 py-2.5 text-sm text-brown-900 placeholder-brown-300 focus:outline-none focus:ring-2 focus:ring-forest-600 focus:border-transparent transition';
 const labelCls = 'block text-brown-700 text-sm font-medium mb-1.5';
@@ -45,6 +45,12 @@ export default function Profile() {
   const [pwMsg, setPwMsg] = useState(null);
   const [pwError, setPwError] = useState(null);
   const [pwLoading, setPwLoading] = useState(false);
+
+  const [gcForm, setGcForm] = useState({ code: '' });
+  const [gcMsg, setGcMsg] = useState(null);
+  const [gcError, setGcError] = useState(null);
+  const [gcLoading, setGcLoading] = useState(false);
+  const [redeemedCards, setRedeemedCards] = useState([]);
 
   const handleFileChange = (e) => {
     const file = e.target.files[0];
@@ -105,6 +111,26 @@ export default function Profile() {
       setPwError(err.response?.data || 'Failed to update password.');
     } finally {
       setPwLoading(false);
+    }
+  };
+
+  const handleGiftCard = async (e) => {
+    e.preventDefault();
+    setGcMsg(null); setGcError(null); setGcLoading(true);
+    const xml = `<?xml version="1.0" encoding="UTF-8"?>\n<gift-card>\n  <code>${gcForm.code}</code>\n</gift-card>`;
+    try {
+      const res = await redeemGiftCard(xml);
+      const data = res.data;
+      const display = data.hint ? `${data.message} ${data.hint}` : data.message;
+      setGcMsg(display);
+      if (!data.hint) {
+        setRedeemedCards((prev) => [...prev, { code: data.code, amount: data.amount }]);
+      }
+      setGcForm({ code: '' });
+    } catch (err) {
+      setGcError(err.response?.data || 'Invalid gift card.');
+    } finally {
+      setGcLoading(false);
     }
   };
 
@@ -187,6 +213,39 @@ export default function Profile() {
               {pwLoading ? 'Saving…' : 'Update password'}
             </button>
           </form>
+        </Card>
+
+        <Card label="Gift Cards">
+          <form onSubmit={handleGiftCard} className="flex flex-col gap-4">
+            {gcMsg && <p className="text-forest-700 text-sm">{gcMsg}</p>}
+            {gcError && <p className="text-terra-600 text-sm">{gcError}</p>}
+            <Field label="Gift Card Code">
+              <input
+                value={gcForm.code}
+                onChange={(e) => setGcForm({ code: e.target.value })}
+                required
+                placeholder="WESPRESSO-000"
+                className={inputCls}
+              />
+            </Field>
+            <button type="submit" disabled={gcLoading} className={primaryBtn}>
+              {gcLoading ? 'Applying…' : 'Add to Account'}
+            </button>
+          </form>
+
+          {redeemedCards.length > 0 && (
+            <div className="mt-6 pt-5 border-t border-cream-200">
+              <p className="text-xs text-brown-400 uppercase tracking-widest mb-3">Applied Cards</p>
+              <div className="flex flex-col gap-2">
+                {redeemedCards.map((card, i) => (
+                  <div key={i} className="flex justify-between items-center text-sm bg-cream-100 rounded-xl px-4 py-2.5 border border-cream-200">
+                    <span className="font-mono text-brown-700">{card.code}</span>
+                    <span className="text-forest-700 font-medium">${parseFloat(card.amount || 0).toFixed(2)}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
         </Card>
       </div>
     </div>

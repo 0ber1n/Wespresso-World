@@ -69,6 +69,10 @@ export const checkout = (cartId, orderData) => api.post(`/order/checkout/${cartI
 export const getOrder = (orderId) => api.get(`/order/${orderId}`);
 export const getMyOrders = () => api.get('/order/my-orders');
 
+// Gift card endpoint — sends raw XML body
+export const redeemGiftCard = (xmlContent) =>
+  api.post('/gift-card/redeem', xmlContent, { headers: { 'Content-Type': 'application/xml' } });
+
 // Logout function to clear the token from session storage
 export const logout = () => {
   api.post('/auth/logout').catch(() => {});

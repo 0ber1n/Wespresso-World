@@ -10,6 +10,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import io.wespresso_world.wespresso_world.FlagConfig;
 import io.wespresso_world.wespresso_world.VulnConfig;
 
 import javax.imageio.ImageIO;
@@ -46,6 +47,9 @@ public class AuthController {
     // [NEW] Vulnerability toggles
     @Autowired
     private VulnConfig vulnConfig;
+
+    @Autowired
+    private FlagConfig flagConfig;
 
     @Operation(summary = "Register a new user")
     @PostMapping("/register")
@@ -232,7 +236,7 @@ public class AuthController {
             // Flag if the final extension is not .jpg/.jpeg — double extension bypass succeeded
             String finalExt = originalName.contains(".") ? originalName.substring(originalName.lastIndexOf(".")) : "";
             if (!finalExt.equals(".jpg") && !finalExt.equals(".jpeg")) {
-                return ResponseEntity.ok("Avatar uploaded successfully\nwes{file_upload_double_extension_bypass}");
+                return ResponseEntity.ok("Avatar uploaded successfully\n" + flagConfig.getFileUploadExtOnly());
             }
             return ResponseEntity.ok("Avatar uploaded successfully");
         }
@@ -259,7 +263,7 @@ public class AuthController {
             userRepository.save(user);
             // Flag if bytes don't start with JPEG magic bytes FF D8 FF — non-JPEG content got through
             if (bytes.length < 3 || (bytes[0] & 0xFF) != 0xFF || (bytes[1] & 0xFF) != 0xD8 || (bytes[2] & 0xFF) != 0xFF) {
-                return ResponseEntity.ok("Avatar uploaded successfully\nwes{file_upload_endswith_bypass}");
+                return ResponseEntity.ok("Avatar uploaded successfully\n" + flagConfig.getFileUploadEndswith());
             }
             return ResponseEntity.ok("Avatar uploaded successfully");
         }
@@ -307,7 +311,7 @@ public class AuthController {
                 // malformed image — treat same as null
             }
             if (check == null) {
-                return ResponseEntity.ok("Avatar uploaded successfully\nwes{file_upload_magic_byte_bypass}");
+                return ResponseEntity.ok("Avatar uploaded successfully\n" + flagConfig.getFileUploadMagicByte());
             }
             return ResponseEntity.ok("Avatar uploaded successfully");
         }
@@ -351,7 +355,7 @@ public class AuthController {
                 payloadFound = true;
             }
             if (payloadFound) {
-                return ResponseEntity.ok("Avatar uploaded successfully\nwes{file_upload_polyglot_cdr_bypass}");
+                return ResponseEntity.ok("Avatar uploaded successfully\n" + flagConfig.getFileUploadCdr());
             }
             return ResponseEntity.ok("Avatar uploaded successfully");
         }

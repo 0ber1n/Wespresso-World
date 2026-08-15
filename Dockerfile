@@ -30,8 +30,7 @@ COPY frontend/nginx.conf /etc/nginx/http.d/default.conf
 # Backend jar
 COPY --from=backend-builder /app/target/wespresso-world-0.0.1-SNAPSHOT.jar /app/backend.jar
 
-# Root level flag
-RUN echo "flag{th1m3l34f_$t1_pwn3d}" > /flag.txt
+
 
 # Supervisord config
 COPY supervisord.conf /etc/supervisor/conf.d/supervisord.conf

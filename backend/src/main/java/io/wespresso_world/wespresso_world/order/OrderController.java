@@ -8,8 +8,6 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.thymeleaf.TemplateEngine;
 import org.thymeleaf.context.Context;
-import org.thymeleaf.templatemode.TemplateMode;
-import org.thymeleaf.templateresolver.StringTemplateResolver;
 
 import freemarker.template.Configuration;
 import freemarker.template.Template;
@@ -22,8 +20,6 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import io.wespresso_world.wespresso_world.user.JwtService;
 import io.wespresso_world.wespresso_world.user.SecurityHelper;
-import io.wespresso_world.wespresso_world.user.SecurityHelper;
-import io.wespresso_world.wespresso_world.user.JwtService;
 
 import java.util.List;
 
