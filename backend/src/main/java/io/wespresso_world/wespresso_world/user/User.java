@@ -5,6 +5,8 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.AllArgsConstructor;
 import io.swagger.v3.oas.annotations.media.Schema;
+import java.util.HashSet;
+import java.util.Set;
 
 @Entity
 @Data
@@ -44,6 +46,13 @@ public class User {
     @Schema(hidden = true)
     private String avatarContentType;
 
+    @Column(nullable = false)
+    private double creditBalance = 0.0;
+
+    @ElementCollection(fetch = FetchType.EAGER)
+    @CollectionTable(name = "user_redeemed_gift_codes", joinColumns = @JoinColumn(name = "user_id"))
+    @Column(name = "code")
+    private Set<String> redeemedGiftCodes = new HashSet<>();
 
     public enum Role {
         user,

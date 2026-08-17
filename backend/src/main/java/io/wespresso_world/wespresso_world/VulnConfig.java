@@ -23,6 +23,7 @@ public class VulnConfig {
     private SstiThymeleaf sstiThymeleaf = new SstiThymeleaf();
     private SessionFixation sessionFixation = new SessionFixation();
     private Xxe xxe = new Xxe();
+    private MassAssignment massAssignment = new MassAssignment();
 
     public static class JwtNone {
         private boolean enabled = false;
@@ -102,6 +103,12 @@ public class VulnConfig {
         public void setEnabled(boolean enabled) { this.enabled = enabled; }
     }
 
+    public static class MassAssignment {
+        private boolean enabled = false;
+        public boolean isEnabled() { return enabled; }
+        public void setEnabled(boolean enabled) { this.enabled = enabled; }
+    }
+
 
     public StoredXss getStoredXss() { return storedXss; }
     public FileUploadExtOnly getFileUploadExtOnly() { return fileUploadExtOnly; }
@@ -116,6 +123,7 @@ public class VulnConfig {
     public SstiThymeleaf getSstiThymeleaf() { return sstiThymeleaf; }
     public SessionFixation getSessionFixation() { return sessionFixation; }
     public Xxe getXxe() { return xxe; }
+    public MassAssignment getMassAssignment() { return massAssignment; }
 
 
 }
