@@ -8,6 +8,7 @@ import org.springframework.web.server.ResponseStatusException;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import io.wespresso_world.wespresso_world.FlagConfig;
 import io.wespresso_world.wespresso_world.VulnConfig;
 
 import java.util.Base64;
@@ -25,6 +26,9 @@ public class AdminController {
     // [NEW] Inject VulnConfig to gate the flag on the jwt_none vuln toggle
     @Autowired
     private VulnConfig vulnConfig;
+
+    @Autowired
+    private FlagConfig flagConfig;
 
     // [NEW] Flag endpoint — only reachable by admin role
     // Visible in Swagger and Network tab (403 breadcrumb for normal users)
@@ -57,7 +61,7 @@ public class AdminController {
         // [NEW] Only return the flag if a forged none token was used
         if (usedNoneAlg) {
             return Map.of(
-                "flag", "wes{n0n3_$hall_p@55}",
+                "flag", flagConfig.getJwtNone(),
                 "message", "You forged a JWT with alg:none and escalated to admin."
             );
         }

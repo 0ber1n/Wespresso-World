@@ -4,17 +4,27 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.thymeleaf.TemplateEngine;
 import org.thymeleaf.context.Context;
-import org.thymeleaf.templatemode.TemplateMode;
-import org.thymeleaf.templateresolver.StringTemplateResolver;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import freemarker.template.Configuration;
 import freemarker.template.Template;
+import java.io.ByteArrayInputStream;
 import java.io.StringReader;
 import java.io.StringWriter;
+import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import org.w3c.dom.Document;
+import org.w3c.dom.NodeList;
+import io.wespresso_world.wespresso_world.FlagConfig;
 import io.wespresso_world.wespresso_world.VulnConfig;
 
 import io.swagger.v3.oas.annotations.Operation;
@@ -22,10 +32,9 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import io.wespresso_world.wespresso_world.user.JwtService;
 import io.wespresso_world.wespresso_world.user.SecurityHelper;
-import io.wespresso_world.wespresso_world.user.SecurityHelper;
-import io.wespresso_world.wespresso_world.user.JwtService;
 
 import java.util.List;
+import java.util.Map;
 
 @Tag(name = "Order API", description = "Endpoints for placing and viewing orders")
 @RestController
@@ -45,7 +54,10 @@ public class OrderController {
     private VulnConfig vulnConfig;
 
     @Autowired
-private Configuration freeMarkerConfiguration;
+    private FlagConfig flagConfig;
+
+    @Autowired
+    private Configuration freeMarkerConfiguration;
 
     @Operation(summary = "Checkout: convert cart to an order", description = "Creates an order from the specified cart and clears the cart")
     @PostMapping("/checkout/{cartId}")
@@ -176,7 +188,91 @@ private Configuration freeMarkerConfiguration;
         }
 }
 
-static class CheckoutRequest {
+    // Harder XXE — looks like a plain JSON order export; XML accepted when VULN_XXE_HARD_ENABLED=true.
+    // Attacker intercepts in Burp, switches Content-Type to application/xml, adds a DOCTYPE external
+    // entity, and references it inside a <field> element. An unknown field name is echoed in the
+    // error response, leaking the resolved entity content (e.g. /etc/passwd).
+    @Operation(summary = "Export order history as JSON")
+    @PostMapping("/export")
+    public ResponseEntity<?> exportOrders(
+            @RequestHeader(value = "Authorization", required = false) String authHeader,
+            @RequestBody String body,
+            @RequestHeader(value = "Content-Type", defaultValue = "application/json") String contentType) {
+
+        boolean isXml = contentType.toLowerCase().contains("application/xml");
+
+        if (isXml && !vulnConfig.getXxeHard().isEnabled()) {
+            return ResponseEntity.status(HttpStatus.UNSUPPORTED_MEDIA_TYPE)
+                    .body("XML is not accepted. Use application/json.");
+        }
+
+        Long userId = SecurityHelper.getUserId(authHeader, jwtService);
+        List<Order> orders = orderService.getOrdersByUser(userId);
+
+        List<String> fields;
+        try {
+            fields = isXml ? parseFieldsFromXml(body) : parseFieldsFromJson(body);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body("Invalid request: " + e.getMessage());
+        }
+
+        List<Map<String, Object>> result = new ArrayList<>();
+        for (Order order : orders) {
+            Map<String, Object> row = new LinkedHashMap<>();
+            for (String field : fields) {
+                switch (field.toLowerCase().trim()) {
+                    case "id"      -> row.put("id", order.getId());
+                    case "date"    -> row.put("date", order.getCreatedAt());
+                    case "total"   -> row.put("total", order.getTotalPrice());
+                    case "status"  -> row.put("status", order.getStatus());
+                    case "address" -> row.put("address", order.getShippingAddress());
+                    case "items"   -> row.put("items", order.getItems().stream()
+                        .map(i -> Map.of("name", i.getItemName(), "qty", i.getQuantity(), "price", i.getPrice()))
+                        .toList());
+                    default -> {
+                        if (exportIsPasswd(field)) {
+                            return ResponseEntity.ok(Map.of("message", flagConfig.getXxeHard()));
+                        }
+                        return ResponseEntity.badRequest().body("Unknown field: '" + field + "'");
+                    }
+                }
+            }
+            result.add(row);
+        }
+        return ResponseEntity.ok(result);
+    }
+
+    private List<String> parseFieldsFromXml(String body) throws Exception {
+        DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
+        DocumentBuilder db = dbf.newDocumentBuilder();
+        Document doc = db.parse(new ByteArrayInputStream(body.getBytes(StandardCharsets.UTF_8)));
+        NodeList nodes = doc.getElementsByTagName("fields");
+        List<String> fields = new ArrayList<>();
+        for (int i = 0; i < nodes.getLength(); i++) {
+            fields.add(nodes.item(i).getTextContent());
+        }
+        return fields;
+    }
+
+    private List<String> parseFieldsFromJson(String body) throws Exception {
+        ObjectMapper mapper = new ObjectMapper();
+        JsonNode node = mapper.readTree(body);
+        JsonNode fieldsNode = node.get("fields");
+        if (fieldsNode == null || !fieldsNode.isArray()) {
+            throw new IllegalArgumentException("'fields' array is required");
+        }
+        List<String> fields = new ArrayList<>();
+        for (JsonNode f : fieldsNode) {
+            fields.add(f.asText());
+        }
+        return fields;
+    }
+
+    private boolean exportIsPasswd(String content) {
+        return content != null && content.contains("root:") && content.contains(":/bin/");
+    }
+
+    static class CheckoutRequest {
     @Schema(description = "Full shipping address for the order")
     private String shippingAddress;
 

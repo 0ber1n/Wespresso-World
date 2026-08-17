@@ -6,6 +6,8 @@ import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.beans.factory.annotation.Value;
+import java.nio.file.Files;
+import java.nio.file.Path;
 
 import io.wespresso_world.wespresso_world.drinks.Drinks;
 import io.wespresso_world.wespresso_world.drinks.DrinksRepository;
@@ -31,15 +33,21 @@ public class WespressoWorldApplication {
 
 	@Bean
 	CommandLineRunner initDatabase(
-			DrinksRepository drinksRepository, 
-			BeansRepository beansRepository, 
-			UserRepository userRepository, 
-			PasswordEncoder passwordEncoder, 
+			DrinksRepository drinksRepository,
+			BeansRepository beansRepository,
+			UserRepository userRepository,
+			PasswordEncoder passwordEncoder,
 			VulnConfig VulnConfig,
+			FlagConfig flagConfig,
 			CartRepository cartRepository,
 			CartItemRepository cartItemRepository
 		) {
 			return args -> {
+				try {
+					Files.writeString(Path.of("/flag.txt"), flagConfig.getSsti() + "\n");
+				} catch (Exception ignored) {
+					// Only writable in container context
+				}
 				// Seed drinks: Initialize the database with some sample data
 				drinksRepository.save(new Drinks(null, "Espresso", "Strong and bold", 2.50));
 				drinksRepository.save(new Drinks(null, "Latte", "Smooth and creamy", 3.50));
@@ -67,7 +75,7 @@ public class WespressoWorldApplication {
 						User steve = new User();
 						steve.setUsername("steve");
 						steve.setPassword(passwordEncoder.encode(adminPassword));
-						steve.setEmail("wes{$ql1_1nj3ct10n_w1ns}");
+						steve.setEmail(flagConfig.getSqli());
 						steve.setRole(User.Role.user);
 						userRepository.save(steve);
 					}
@@ -85,7 +93,7 @@ public class WespressoWorldApplication {
 						cartRepository.save(adminCart);
 
 						CartItem flagItem = new CartItem();
-						flagItem.setItemName("wes{1D0R_3xp0s3d_4dm1n_c4rt}");
+						flagItem.setItemName(flagConfig.getIdorCart());
 						flagItem.setPrice(0.00);
 						flagItem.setQuantity(1);
 						flagItem.setCategory("special");

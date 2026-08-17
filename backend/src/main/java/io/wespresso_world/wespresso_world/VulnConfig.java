@@ -22,6 +22,9 @@ public class VulnConfig {
     private PasswordIdor passwordIdor = new PasswordIdor();
     private SstiThymeleaf sstiThymeleaf = new SstiThymeleaf();
     private SessionFixation sessionFixation = new SessionFixation();
+    private Xxe xxe = new Xxe();
+    private XxeHard xxeHard = new XxeHard();
+    private MassAssignment massAssignment = new MassAssignment();
 
     public static class JwtNone {
         private boolean enabled = false;
@@ -95,6 +98,24 @@ public class VulnConfig {
         public void setEnabled(boolean enabled) { this.enabled = enabled; }
     }
 
+    public static class Xxe {
+        private boolean enabled = false;
+        public boolean isEnabled() { return enabled; }
+        public void setEnabled(boolean enabled) { this.enabled = enabled; }
+    }
+
+    public static class XxeHard {
+        private boolean enabled = false;
+        public boolean isEnabled() { return enabled; }
+        public void setEnabled(boolean enabled) { this.enabled = enabled; }
+    }
+
+    public static class MassAssignment {
+        private boolean enabled = false;
+        public boolean isEnabled() { return enabled; }
+        public void setEnabled(boolean enabled) { this.enabled = enabled; }
+    }
+
 
     public StoredXss getStoredXss() { return storedXss; }
     public FileUploadExtOnly getFileUploadExtOnly() { return fileUploadExtOnly; }
@@ -108,6 +129,9 @@ public class VulnConfig {
     public PasswordIdor getPasswordIdor() { return passwordIdor; }
     public SstiThymeleaf getSstiThymeleaf() { return sstiThymeleaf; }
     public SessionFixation getSessionFixation() { return sessionFixation; }
+    public Xxe getXxe() { return xxe; }
+    public XxeHard getXxeHard() { return xxeHard; }
+    public MassAssignment getMassAssignment() { return massAssignment; }
 
-    
+
 }
