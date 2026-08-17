@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { getMyOrders } from '../services/api';
+import { getMyOrders, exportOrders } from '../services/api';
 import ErrorPage from '../components/ErrorPage';
 
 export default function Orders() {
@@ -16,6 +16,21 @@ export default function Orders() {
       .catch(() => setError('Failed to load orders'))
       .finally(() => setLoading(false));
   }, []);
+
+  const handleExport = async () => {
+    try {
+      const res = await exportOrders(['id', 'date', 'total', 'status', 'address', 'items']);
+      const blob = new Blob([JSON.stringify(res.data, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'order-history.json';
+      a.click();
+      URL.revokeObjectURL(url);
+    } catch {
+      // silently fail — export is non-critical
+    }
+  };
 
   const openReceipt = async (orderId, beta = false) => {
     const token = sessionStorage.getItem('token');
@@ -39,9 +54,19 @@ export default function Orders() {
   return (
     <div className="bg-cream-100 min-h-screen">
       <div className="max-w-3xl mx-auto px-8 py-12">
-        <h1 className="text-4xl font-bold text-brown-900 mb-10" style={{ fontFamily: 'var(--font-family-serif)' }}>
-          Order History
-        </h1>
+        <div className="flex items-center justify-between mb-10">
+          <h1 className="text-4xl font-bold text-brown-900" style={{ fontFamily: 'var(--font-family-serif)' }}>
+            Order History
+          </h1>
+          {orders.length > 0 && (
+            <button
+              onClick={handleExport}
+              className="text-xs text-brown-500 border border-cream-300 bg-cream-50 hover:bg-cream-200 px-4 py-2 rounded-xl transition-colors"
+            >
+              Export
+            </button>
+          )}
+        </div>
 
         {orders.length === 0 ? (
           <div className="bg-cream-50 rounded-2xl border border-cream-300 shadow-warm p-14 text-center">

@@ -1,6 +1,6 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { updateEmail, updatePassword, uploadAvatar, getAvatarUrl, redeemGiftCard } from '../services/api';
+import { updateEmail, updatePassword, uploadAvatar, getAvatarUrl, redeemGiftCard, getGiftCardBalance } from '../services/api';
 
 const inputCls = 'w-full border border-cream-400 bg-cream-50 rounded-xl px-4 py-2.5 text-sm text-brown-900 placeholder-brown-300 focus:outline-none focus:ring-2 focus:ring-forest-600 focus:border-transparent transition';
 const labelCls = 'block text-brown-700 text-sm font-medium mb-1.5';
@@ -51,6 +51,18 @@ export default function Profile() {
   const [gcError, setGcError] = useState(null);
   const [gcLoading, setGcLoading] = useState(false);
   const [redeemedCards, setRedeemedCards] = useState([]);
+  const [creditBalance, setCreditBalance] = useState(0);
+
+  const fetchBalance = () => {
+    getGiftCardBalance()
+      .then(res => {
+        setCreditBalance(res.data.balance);
+        setRedeemedCards((res.data.redeemedCodes || []).map(code => ({ code, amount: '20.00' })));
+      })
+      .catch(() => {});
+  };
+
+  useEffect(() => { fetchBalance(); }, []);
 
   const handleFileChange = (e) => {
     const file = e.target.files[0];
@@ -117,16 +129,12 @@ export default function Profile() {
   const handleGiftCard = async (e) => {
     e.preventDefault();
     setGcMsg(null); setGcError(null); setGcLoading(true);
-    const xml = `<?xml version="1.0" encoding="UTF-8"?>\n<gift-card>\n  <code>${gcForm.code}</code>\n</gift-card>`;
     try {
-      const res = await redeemGiftCard(xml);
+      const res = await redeemGiftCard(gcForm.code);
       const data = res.data;
-      const display = data.hint ? `${data.message} ${data.hint}` : data.message;
-      setGcMsg(display);
-      if (!data.hint) {
-        setRedeemedCards((prev) => [...prev, { code: data.code, amount: data.amount }]);
-      }
+      setGcMsg(data.message);
       setGcForm({ code: '' });
+      fetchBalance();
     } catch (err) {
       setGcError(err.response?.data || 'Invalid gift card.');
     } finally {
@@ -149,6 +157,10 @@ export default function Profile() {
                 <span className="font-medium text-brown-900 capitalize">{v}</span>
               </div>
             ))}
+            <div className="flex justify-between py-3">
+              <span className="text-brown-400">Store Credit</span>
+              <span className="font-medium text-forest-700">${creditBalance.toFixed(2)}</span>
+            </div>
           </div>
         </Card>
 
@@ -243,6 +255,10 @@ export default function Profile() {
                     <span className="text-forest-700 font-medium">${parseFloat(card.amount || 0).toFixed(2)}</span>
                   </div>
                 ))}
+                <div className="flex justify-between items-center text-sm font-semibold px-4 py-2.5 text-brown-700 border-t border-cream-200 mt-1 pt-3">
+                  <span>Total Credit</span>
+                  <span className="text-forest-700">${creditBalance.toFixed(2)}</span>
+                </div>
               </div>
             </div>
           )}

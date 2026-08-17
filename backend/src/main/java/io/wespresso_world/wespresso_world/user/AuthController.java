@@ -448,4 +448,5 @@ public class AuthController {
         userRepository.save(user);
         return ResponseEntity.ok("Password updated successfully");
     }
+
 }

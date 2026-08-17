@@ -15,6 +15,7 @@ public class FlagConfig {
     private String fileUploadMagicByte = "wes{file_upload_magic_byte_bypass}";
     private String fileUploadCdr = "wes{file_upload_polyglot_cdr_bypass}";
     private String xxe           = "wes{xxe_3xt3rn4l_3nt1ty}";
+    private String xxeHard       = "wes{xxe_h4rd_c0nt3nt_typ3_sw4p}";
     private String ssti          = "flag{th1m3l34f_ssti_pwnd}";
 
     public String getSqli()               { return sqli; }
@@ -40,6 +41,9 @@ public class FlagConfig {
 
     public String getXxe()               { return xxe; }
     public void setXxe(String v)         { this.xxe = v; }
+
+    public String getXxeHard()           { return xxeHard; }
+    public void setXxeHard(String v)     { this.xxeHard = v; }
 
     public String getSsti()              { return ssti; }
     public void setSsti(String v)        { this.ssti = v; }

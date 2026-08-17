@@ -68,10 +68,11 @@ export const getAvatarUrl = (userId) => `/api/v1/auth/profile/avatar/${userId}`;
 export const checkout = (cartId, orderData) => api.post(`/order/checkout/${cartId}`, orderData);
 export const getOrder = (orderId) => api.get(`/order/${orderId}`);
 export const getMyOrders = () => api.get('/order/my-orders');
+export const exportOrders = (fields) => api.post('/order/export', { fields });
 
-// Gift card endpoint — sends raw XML body
-export const redeemGiftCard = (xmlContent) =>
-  api.post('/gift-card/redeem', xmlContent, { headers: { 'Content-Type': 'application/xml' } });
+// Gift card endpoints
+export const redeemGiftCard = (code) => api.post('/gift-card/redeem', { code });
+export const getGiftCardBalance = () => api.get('/gift-card/balance');
 
 // Logout function to clear the token from session storage
 export const logout = () => {
